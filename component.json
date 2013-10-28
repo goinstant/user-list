@@ -2,7 +2,7 @@
   "name": "user-list",
   "repo": "goinstant/user-list",
   "description": "Displays a list of users currently in a GoInstant room.",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "keywords": [
     "GoInstant",
     "widget",
@@ -16,7 +16,8 @@
     "component/classes": "*",
     "component/trim": "*",
     "caolan/async": "*",
-    "goinstant/usercache": "*"
+    "goinstant/usercache": "*",
+    "goinstant/colors-common": "*"
   },
 
   "development": {
