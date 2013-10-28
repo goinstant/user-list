@@ -18,7 +18,7 @@ var _ = require('lodash');
 var htmlEscape = require('./lib/secure_filters').html;
 var UserView = require('./lib/user_view');
 var UserCache = require('usercache');
-var colors = require('colors');
+var colors = require('colors-common');
 
 var errors = require('./lib/errors');
 
