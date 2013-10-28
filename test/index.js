@@ -12,7 +12,7 @@ describe('User-List Component', function() {
   var UserList = require('user-list');
   var UserView = require('user-list/lib/user_view.js');
 
-  var colors = require('colors');
+  var colors = require('colors-common');
 
   var fakeRoom;
   var fakeUser;
