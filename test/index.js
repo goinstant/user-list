@@ -80,314 +80,6 @@ describe('User-List Component', function() {
     fakeRoom.users.off = sinon.stub().callsArg(2);
   });
 
-  describe('constructor', function() {
-    afterEach(function(done) {
-      var el = document.querySelector('.gi-userlist');
-
-      if (!testUserList || !el) {
-        return done();
-      }
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        testUserList = null;
-
-        done();
-      });
-    });
-
-    it('returns new instance object correctly', function() {
-      var options = {
-        room: fakeRoom
-      };
-
-      testUserList = new UserList(options);
-
-      assert.isObject(testUserList);
-    });
-
-    describe('errors', function() {
-      it('throws an error if options is not passed', function() {
-        assert.exception(function() {
-          testUserList = new UserList(null);
-        }, 'UserList: Options was not found or invalid');
-      });
-
-      it('throws an error if options is not an object', function() {
-        assert.exception(function() {
-          testUserList = new UserList('hi');
-        }, 'UserList: Options was not found or invalid');
-      });
-
-      it('throws an error if options.room is not passed', function() {
-        assert.exception(function() {
-          testUserList = new UserList({});
-        }, 'UserList: Room was not found or invalid');
-      });
-
-      it('throws an error if options.room is not an object', function() {
-        var options = {
-          room: 'hi'
-        };
-
-        assert.exception(function() {
-          testUserList = new UserList(options);
-        }, 'UserList: Room was not found or invalid');
-      });
-
-      it('throws an error if invalid options are passed', function() {
-        var invalidOptions = {
-          room: fakeRoom,
-          fake: 'value'
-        };
-
-        assert.exception(function() {
-          testUserList = new UserList(invalidOptions);
-        }, 'UserList: Invalid argument passed');
-      });
-
-      it('throws an error if collapsed is not a boolean', function() {
-        var options = {
-          room: fakeRoom,
-          collapsed: 'True'
-        };
-
-        assert.exception(function() {
-          testUserList = new UserList(options);
-        }, 'UserList: collapsed value must be a boolean');
-      });
-
-      it('throws an error if container is not a DOM element', function() {
-        var options = {
-          room: fakeRoom,
-          container: 'DOM ELEMENT'
-        };
-
-        assert.exception(function() {
-          testUserList = new UserList(options);
-        }, 'UserList: container must be a DOM element');
-      });
-
-      it('throws an error if position is not right || left', function() {
-        var options = {
-          room: fakeRoom,
-          position: 'top'
-        };
-
-        assert.exception(function() {
-          testUserList = new UserList(options);
-        }, 'UserList: position can only be "right" or "left"');
-      });
-
-      it('throws an error if position is not a string', function() {
-        var options = {
-          room: fakeRoom,
-          position: true
-        };
-
-        assert.exception(function() {
-          testUserList = new UserList(options);
-        }, 'UserList: position can only be "right" or "left"');
-      });
-
-      it('passes back an error if truncateLength is not a number', function() {
-        var options = {
-          room: fakeRoom,
-          truncateLength: '10'
-        };
-
-        assert.exception(function() {
-          testUserList = new UserList(options);
-        }, 'UserList: truncateLength can only be a number');
-      });
-
-      it('passes back an error if avatars is not a boolean', function() {
-        var options = {
-          room: fakeRoom,
-          avatars: 'true'
-        };
-
-        assert.exception(function() {
-          testUserList = new UserList(options);
-        }, 'UserList: avatars must be a boolean');
-      });
-
-      it('passes back an error if userOptions is not a boolean', function() {
-        var options = {
-          room: fakeRoom,
-          userOptions: 'true'
-        };
-
-        assert.exception(function() {
-          testUserList = new UserList(options);
-        }, 'UserList: userOptions must be a boolean');
-      });
-    });
-  });
-
-  describe('.initialize', function() {
-    beforeEach(function() {
-      var options = {
-        room: fakeRoom
-      };
-
-      testUserList = new UserList(options);
-    });
-
-    afterEach(function(done) {
-      var el = document.querySelector('.gi-userlist');
-
-      if (!testUserList || !el) {
-        return done();
-      }
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        testUserList = null;
-
-        done();
-      });
-    });
-
-    it('successfully calls on initialize', function(done) {
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
-    it('renders the user list in the DOM', function(done) {
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        var container = document.querySelector('.gi-userlist');
-        var inner = document.querySelector('.gi-inner');
-        var collapseBtn = document.querySelector('.gi-collapse');
-
-        assert(container);
-        assert(inner);
-        assert(collapseBtn);
-
-        done();
-      });
-    });
-
-    describe('errors', function() {
-      it('throws an error if not passed a callback', function() {
-        assert.exception(function() {
-          testUserList.initialize();
-        }, 'initialize: Callback was not found or invalid');
-      });
-
-      it('throws an error if passed callback is not a function', function() {
-        assert.exception(function() {
-          testUserList.initialize({});
-        }, 'initialize: Callback was not found or invalid');
-      });
-    });
-  });
-
-  describe('.destroy', function() {
-    beforeEach(function(done) {
-      var options = {
-        room: fakeRoom
-      };
-
-      testUserList = new UserList(options);
-
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
-    it('successfully calls destroy with no error returned', function(done) {
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
-    it('verifies room "leave" listener has been removed', function(done) {
-      var fakeRoom = testUserList._room;
-      var listener = fakeRoom.on.args[0][1];
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        assert(fakeRoom.off.calledWith('leave', listener));
-
-        done();
-      });
-    });
-
-    it('verifies room "join" listener has been removed', function(done) {
-      var fakeRoom = testUserList._room;
-      var listener = fakeRoom.on.args[1][1];
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        assert(fakeRoom.off.calledWith('join', listener));
-
-        done();
-      });
-    });
-
-    it('verifies users key "set" listener is removed', function(done) {
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        var listener = fakeUsersKey.on.args[0][1].listener;
-
-        assert(fakeUsersKey.off.calledWith('set', listener));
-
-        done();
-      });
-    });
-
-    it('verifies user list container element doesn\'t exist', function(done) {
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        var container = document.querySelector('.gi-userlist');
-        var inner = document.querySelector('.gi-inner');
-        var collapseBtn = document.querySelector('.gi-collapse');
-
-        assert(!container);
-        assert(!inner);
-        assert(!collapseBtn);
-
-        done();
-      });
-    });
-  });
-
   describe('platform events', function() {
     beforeEach(function(done) {
       var options = {
@@ -837,4 +529,313 @@ describe('User-List Component', function() {
       assert($('.gi-local-user span').text() === currentName);
     });
   });
+
+  describe('constructor', function() {
+    afterEach(function(done) {
+      var el = document.querySelector('.gi-userlist');
+
+      if (!testUserList || !el) {
+        return done();
+      }
+
+      testUserList.destroy(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        testUserList = null;
+
+        done();
+      });
+    });
+
+    it('returns new instance object correctly', function() {
+      var options = {
+        room: fakeRoom
+      };
+
+      testUserList = new UserList(options);
+
+      assert.isObject(testUserList);
+    });
+
+    describe('errors', function() {
+      it('throws an error if options is not passed', function() {
+        assert.exception(function() {
+          testUserList = new UserList(null);
+        }, 'UserList: Options was not found or invalid');
+      });
+
+      it('throws an error if options is not an object', function() {
+        assert.exception(function() {
+          testUserList = new UserList('hi');
+        }, 'UserList: Options was not found or invalid');
+      });
+
+      it('throws an error if options.room is not passed', function() {
+        assert.exception(function() {
+          testUserList = new UserList({});
+        }, 'UserList: Room was not found or invalid');
+      });
+
+      it('throws an error if options.room is not an object', function() {
+        var options = {
+          room: 'hi'
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(options);
+        }, 'UserList: Room was not found or invalid');
+      });
+
+      it('throws an error if invalid options are passed', function() {
+        var invalidOptions = {
+          room: fakeRoom,
+          fake: 'value'
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(invalidOptions);
+        }, 'UserList: Invalid argument passed');
+      });
+
+      it('throws an error if collapsed is not a boolean', function() {
+        var options = {
+          room: fakeRoom,
+          collapsed: 'True'
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(options);
+        }, 'UserList: collapsed value must be a boolean');
+      });
+
+      it('throws an error if container is not a DOM element', function() {
+        var options = {
+          room: fakeRoom,
+          container: 'DOM ELEMENT'
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(options);
+        }, 'UserList: container must be a DOM element');
+      });
+
+      it('throws an error if position is not right || left', function() {
+        var options = {
+          room: fakeRoom,
+          position: 'top'
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(options);
+        }, 'UserList: position can only be "right" or "left"');
+      });
+
+      it('throws an error if position is not a string', function() {
+        var options = {
+          room: fakeRoom,
+          position: true
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(options);
+        }, 'UserList: position can only be "right" or "left"');
+      });
+
+      it('passes back an error if truncateLength is not a number', function() {
+        var options = {
+          room: fakeRoom,
+          truncateLength: '10'
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(options);
+        }, 'UserList: truncateLength can only be a number');
+      });
+
+      it('passes back an error if avatars is not a boolean', function() {
+        var options = {
+          room: fakeRoom,
+          avatars: 'true'
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(options);
+        }, 'UserList: avatars must be a boolean');
+      });
+
+      it('passes back an error if userOptions is not a boolean', function() {
+        var options = {
+          room: fakeRoom,
+          userOptions: 'true'
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(options);
+        }, 'UserList: userOptions must be a boolean');
+      });
+    });
+  });
+
+  describe('.initialize', function() {
+    beforeEach(function() {
+      var options = {
+        room: fakeRoom
+      };
+
+      testUserList = new UserList(options);
+    });
+
+    afterEach(function(done) {
+      var el = document.querySelector('.gi-userlist');
+
+      if (!testUserList || !el) {
+        return done();
+      }
+
+      testUserList.destroy(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        testUserList = null;
+
+        done();
+      });
+    });
+
+    it('successfully calls on initialize', function(done) {
+      testUserList.initialize(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+    });
+
+    it('renders the user list in the DOM', function(done) {
+      testUserList.initialize(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        var container = document.querySelector('.gi-userlist');
+        var inner = document.querySelector('.gi-inner');
+        var collapseBtn = document.querySelector('.gi-collapse');
+
+        assert(container);
+        assert(inner);
+        assert(collapseBtn);
+
+        done();
+      });
+    });
+
+    describe('errors', function() {
+      it('throws an error if not passed a callback', function() {
+        assert.exception(function() {
+          testUserList.initialize();
+        }, 'initialize: Callback was not found or invalid');
+      });
+
+      it('throws an error if passed callback is not a function', function() {
+        assert.exception(function() {
+          testUserList.initialize({});
+        }, 'initialize: Callback was not found or invalid');
+      });
+    });
+  });
+
+  describe('.destroy', function() {
+    beforeEach(function(done) {
+      var options = {
+        room: fakeRoom
+      };
+
+      testUserList = new UserList(options);
+
+      testUserList.initialize(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+    });
+
+    it('successfully calls destroy with no error returned', function(done) {
+      testUserList.destroy(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        done();
+      });
+    });
+
+    it('verifies room "leave" listener has been removed', function(done) {
+      var fakeRoom = testUserList._room;
+      var listener = fakeRoom.on.args[0][1];
+
+      testUserList.destroy(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        assert(fakeRoom.off.calledWith('leave', listener));
+
+        done();
+      });
+    });
+
+    it('verifies room "join" listener has been removed', function(done) {
+      var fakeRoom = testUserList._room;
+      var listener = fakeRoom.on.args[1][1];
+
+      testUserList.destroy(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        assert(fakeRoom.off.calledWith('join', listener));
+
+        done();
+      });
+    });
+
+    it('verifies users key "set" listener is removed', function(done) {
+      testUserList.destroy(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        var listener = fakeUsersKey.on.args[0][1].listener;
+
+        assert(fakeUsersKey.off.calledWith('set', listener));
+
+        done();
+      });
+    });
+
+    it('verifies user list container element doesn\'t exist', function(done) {
+      testUserList.destroy(function(err) {
+        if (err) {
+          return done(err);
+        }
+
+        var container = document.querySelector('.gi-userlist');
+        var inner = document.querySelector('.gi-inner');
+        var collapseBtn = document.querySelector('.gi-collapse');
+
+        assert(!container);
+        assert(!inner);
+        assert(!collapseBtn);
+
+        done();
+      });
+    });
+  });
+
 });
