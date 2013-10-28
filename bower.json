@@ -1,0 +1,27 @@
+{
+  "name": "user-list",
+  "main": "dist/user-list.js",
+  "version": "1.0.0",
+  "homepage": "https://github.com/goinstant/user-list",
+  "authors": [
+    "GoInstant",
+    "a salesforce.com company"
+  ],
+
+  "description": "Displays a list of users currently in a GoInstant room.",
+  "keywords": [
+    "GoInstant",
+    "widget",
+    "user-list"
+  ],
+
+  "license": "BSD",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
+
