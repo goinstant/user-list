@@ -1,0 +1,47 @@
+{
+  "name": "user-list",
+  "repo": "goinstant/user-list",
+  "description": "User List drop-in component for GoInstant",
+  "version": "1.0.0",
+  "keywords": [],
+
+  "dependencies": {
+    "lodash/lodash": "*",
+    "stagas/binder": "*",
+    "component/emitter": "*",
+    "component/classes": "*",
+    "component/trim": "*",
+    "caolan/async": "*",
+    "goinstant/usercache": "*",
+    "goinstant/colors-common": "*"
+  },
+
+  "development": {
+    "visionmedia/mocha": "*",
+    "component/jquery": "*"
+  },
+
+  "main": "index.js",
+
+  "scripts": [
+    "index.js",
+    "lib/user_view.js",
+    "lib/errors.js"
+  ],
+
+  "templates": [
+    "templates/user-template.html",
+    "templates/list-template.html"
+  ],
+
+  "styles": [
+    "user-list.css"
+  ],
+
+  "images": [
+    "images/collapse-arrow.png",
+    "images/avatar-blank.png",
+    "images/options.png",
+    "images/set.png"
+  ]
+}

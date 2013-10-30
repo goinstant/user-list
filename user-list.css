@@ -1,0 +1,252 @@
+.clearfix:after {
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
+}
+
+.clearfix {
+  display: inline-block;
+}
+
+html[xmlns] .clearfix {
+  display: block;
+}
+
+* html .clearfix {
+  height: 1%;
+}
+
+/* Wrapper */
+.gi-userlist {
+  position: relative;
+  display: none;
+  max-width: 170px;
+  font-family: sans-serif;
+  font-size: 14px;
+  background: #a6a6a6;
+  z-index: 9999;
+}
+
+.gi-userlist.gi-no-options {
+  max-width: 140px;
+}
+
+  /* Overrides breaking style in bootstrap */
+  .gi-userlist * {
+    box-sizing: content-box;
+    -moz-box-sizing: content-box;
+  }
+
+/* Anchored */
+.gi-anchor {
+  position: fixed;
+  top: 25%;
+}
+
+.gi-relative {
+  position: relative;
+  padding: 3px;
+}
+
+/* Right Aligned */
+.gi-userlist.gi-right {
+  padding: 3px 0 3px 3px;
+  right: 0;
+}
+
+/* Left Aligned */
+.gi-userlist.gi-left {
+  padding: 3px 3px 3px 0;
+  left: 0;
+}
+
+/* Inner List */
+.gi-userlist .gi-inner {
+  display: block;
+  margin: 0;
+  padding: 0;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+.gi-userlist .gi-color {
+  position: relative;
+  display: inline-block;
+  float: left;
+  width: 24px;
+  height: 24px;
+  background-image: url('images/avatar-blank.png');
+  background-repeat: no-repeat;
+  background-position: 3px center;
+}
+
+  /* Transparent Avatar Border */
+  .gi-userlist .gi-color:before {
+    display:block;
+    content:'';
+    position:absolute;
+    width:100%;
+    height:100%;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.2);
+  }
+
+.gi-userlist .gi-avatar {
+  overflow: hidden;
+  width: 24px;
+  height: 20px;
+}
+
+.gi-userlist .gi-avatar .gi-avatar-img {
+  background: #f5f5f5;
+  width: 24px;
+  height: 24px;
+
+  vertical-align: top; /* Overrides breaking style in bootstrap */
+}
+
+.gi-inner.collapsed .gi-user {
+  overflow: visible;
+}
+
+.gi-userlist .gi-name {
+  display: inline-block;
+  overflow: hidden;
+  width: 80px;
+  padding: 0 10px;
+  font-size: 13px;
+  line-height: 2em;
+  margin-right: 20px;
+}
+
+.gi-userlist .gi-name.gi-no-options {
+  margin-right: 0;
+}
+
+.gi-userlist .gi-name span {
+  white-space: nowrap;
+}
+
+.gi-userlist .gi-options input {
+  display: none;
+  width: 80px;
+  height: 26px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 26px;
+  margin-top: 4px;
+  border: none;
+  padding: 0px 10px 0px 10px;
+  float: right;
+  box-shadow: none;
+}
+
+.gi-userlist .gi-options input:focus {
+  outline: 0;
+}
+
+.gi-userlist .gi-options.set input {
+  display: block;
+}
+.gi-userlist .gi-inner.collapsed .gi-name,
+.gi-userlist .gi-options.collapsed {
+  display: none;
+  overflow: visible;
+}
+
+.gi-userlist .gi-options {
+  position: absolute;
+  width: 100%;
+  height: 30px;
+}
+
+.gi-userlist .gi-options span {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background-image: url('images/options.png');
+  background-repeat: no-repeat;
+  margin: 8px 12px 8px 0;
+  cursor: pointer;
+  float: right;
+}
+
+.gi-userlist .gi-options.set span {
+  background-image: url('images/set.png');
+}
+
+.gi-userlist ul {
+  margin: 0;
+}
+
+.gi-userlist li {
+  height: 24px;
+  margin: 0;
+  overflow: hidden;
+  padding: 4px 5px;
+  width: 100%;
+  border-bottom: 1px solid #cbcbcb;
+  list-style: none;
+}
+
+/* Local user styling */
+.gi-userlist li.gi-local-user {
+  font-weight: 600;
+  background: #ffffff;
+}
+
+.gi-userlist li:last-child {
+  border-bottom: 0px;
+}
+
+/* Collapse Toggle */
+.gi-userlist .gi-collapse {
+  bottom: -30px;
+  display: block;
+  height: 27px;
+  position: absolute;
+  width: 34px;
+  background: #cbcbcb;
+  border-bottom: 3px solid #a6a6a6;
+  cursor: pointer;
+}
+
+.gi-userlist.gi-relative .gi-collapse {
+  display: none;
+}
+
+.gi-userlist.gi-right .gi-collapse {
+  right: 0;
+  border-left: 3px solid #a6a6a6;
+}
+
+.gi-userlist.gi-left .gi-collapse {
+  left: 0;
+  border-right: 3px solid #a6a6a6;
+}
+
+.gi-userlist .gi-collapse span {
+  display: block;
+  height: 16px;
+  margin: 5px 10px;
+  width: 11px;
+  background-image: url('images/collapse-arrow.png');
+}
+
+.gi-userlist.gi-left .gi-collapse span {
+  background-position: 11px;
+}
+
+.gi-userlist.gi-left .gi-collapse.collapsed span {
+  background-position: 0px;
+}
+
+.gi-userlist.gi-right .gi-collapse span {
+  background-position: 0px;
+}
+
+.gi-userlist.gi-right .gi-collapse.collapsed span {
+  background-position: 11px;
+}
