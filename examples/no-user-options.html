@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>GoInstant: User List Example: defaults</title>
+
+    <script src="https://cdn.goinstant.net/v1/platform.min.js"></script>
+    <script src="https://cdn.goinstant.net/widgets/user-colors/latest/user-colors.min.js"></script>
+
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="../node_modules/lodash/lodash.js"></script>
+
+    <!-- Config -->
+    <script src="../config/config.js"></script>
+
+    <!-- Widget Example Page -->
+    <link rel="stylesheet" href="../node_modules/widget-examples/css/examples.css" />
+    <script src="../node_modules/widget-examples/js/template.js"></script>
+    <script src="../node_modules/widget-examples/js/examples.js"></script>
+
+    <!-- GoInstant Widget Build -->
+    <link rel="stylesheet" href="../build/build.css" />
+    <script src="../build/build.js"></script>
+  </head>
+  <body>
+
+    <script type="text/javascript">
+
+      // Define the example
+      function widgetTest(room) {
+
+        var UserList = require('user-list');
+        var UserColors = goinstant.widgets.UserColors;
+
+        var options = {
+          room: room,
+          userOptions: false
+        };
+
+        var userColors = new UserColors({ room: room });
+        userColors.choose(function(err){
+          if (err) console.error(err);
+        });
+
+        var userList = new UserList(options);
+
+        userList.initialize(function(err) {
+            if (err) throw err;
+        });
+
+        document.getElementById('avatar').onclick = function() {
+          room.user(function(err, userObj, userKey, context) {
+            userKey.key('avatarUrl').set('https://si0.twimg.com/profile_images/1539812195/400x400-GoInstant.png');
+          });
+        }
+
+      }
+
+      // Load the example test page
+      $(document).ready(function() {
+
+        var config = {
+          name: 'User List',
+          desc: 'userOptions set to false',
+          test: widgetTest
+        };
+
+        var example = new Example(config);
+        example.load();
+      });
+
+    </script>
+
+    <div id="common"></div>
+
+    <div id="expected">
+      <p>
+      The expected behaviour of this page is as follows:
+      </p>
+      <ul>
+        <li>The user list should not display the user options cog wheel.</li>
+      </ul>
+    </div>
+
+    <button id="avatar">Give me an avatar!</button>
+
+  </body>
+</html>
