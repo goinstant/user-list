@@ -39,9 +39,7 @@
   ],
 
   "images": [
-    "images/collapse-arrow.png",
-    "images/avatar-blank.png",
-    "images/options.png",
-    "images/set.png"
+    "images/sprite.png",
+    "images/000000-0.7.png"
   ]
 }
