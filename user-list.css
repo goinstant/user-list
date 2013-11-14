@@ -224,6 +224,17 @@
       margin: 11px 12px 0 0;
       background-position: -135px -4px;
       cursor: pointer;
+      opacity: .9;
+    }
+
+      .gi-userlist .gi-options .gi-icon:hover {
+        opacity: 1;
+      }
+
+
+    .gi-userlist .gi-options.set .gi-icon {
+      margin: 12px 12px 0 0;
+      background-position: -161px -5px;
     }
 
 /* 
