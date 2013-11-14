@@ -1,252 +1,295 @@
-.clearfix:after {
-  content: ".";
-  display: block;
-  clear: both;
-  visibility: hidden;
-  line-height: 0;
-  height: 0;
-}
+/* ==========================================================================
+   GoInstant Userlist Widget Styles
+   ========================================================================== */
 
-.clearfix {
+.gi-userlist .gi-icon {
   display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url('images/sprite.png');
+  background-repeat: no-repeat;
 }
 
-html[xmlns] .clearfix {
-  display: block;
+/* 
+   Userlist Element
+   ========================================================================== */
+
+/* Change the box model */
+.gi-userlist * {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
 }
 
-* html .clearfix {
-  height: 1%;
-}
-
-/* Wrapper */
 .gi-userlist {
   position: relative;
   display: none;
   max-width: 170px;
   font-family: sans-serif;
   font-size: 14px;
-  background: #a6a6a6;
   z-index: 9999;
+  border-radius: 3px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.2);
 }
 
-.gi-userlist.gi-no-options {
-  max-width: 140px;
-}
+/* 
+   Positioning
+   ========================================================================== */
 
-  /* Overrides breaking style in bootstrap */
-  .gi-userlist * {
-    box-sizing: content-box;
-    -moz-box-sizing: content-box;
+  /* Anchored */
+  .gi-anchor {
+    position: fixed;
+    top: 25%;
   }
 
-/* Anchored */
-.gi-anchor {
-  position: fixed;
-  top: 25%;
-}
+    /* Right Aligned */
+    .gi-userlist.gi-right {
+      right: 0;
+      border-radius: 3px 0 0 3px;
+    }
+      .gi-userlist.gi-right .gi-inner {
+        border-radius: 3px 0 0 3px;
+        border-right: 0;
+      }
 
-.gi-relative {
-  position: relative;
-  padding: 3px;
-}
+    /* Left Aligned */
+    .gi-userlist.gi-left {
+      left: 0;
+      border-radius: 0 3px 3px 0;
+    }
+      .gi-userlist.gi-left .gi-inner {
+        border-radius: 0 3px 3px 0;
+        border-left: 0;
+      }
+    
+    /* Custom Container */
+    .gi-relative {
+      position: relative;
+    }
 
-/* Right Aligned */
-.gi-userlist.gi-right {
-  padding: 3px 0 3px 3px;
-  right: 0;
-}
-
-/* Left Aligned */
-.gi-userlist.gi-left {
-  padding: 3px 3px 3px 0;
-  left: 0;
-}
-
-/* Inner List */
+/* 
+   User List
+   ========================================================================== */
+  
+/* Wrapper */ 
 .gi-userlist .gi-inner {
   display: block;
   margin: 0;
   padding: 0;
   background: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 3px;
   overflow: hidden;
 }
 
-.gi-userlist .gi-color {
-  position: relative;
-  display: inline-block;
-  float: left;
-  width: 24px;
-  height: 24px;
-  background-image: url('images/avatar-blank.png');
-  background-repeat: no-repeat;
-  background-position: 3px center;
-}
-
-  /* Transparent Avatar Border */
-  .gi-userlist .gi-color:before {
-    display:block;
-    content:'';
-    position:absolute;
-    width:100%;
-    height:100%;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,.2);
+  /* Username List */
+  .gi-userlist ul {
+    margin: 0;
+    list-style: none;
   }
 
-.gi-userlist .gi-avatar {
-  overflow: hidden;
-  width: 24px;
-  height: 20px;
+    .gi-userlist li {
+      height: auto;
+      margin: 0;
+      overflow: hidden;
+      padding: 5px 7px;
+      width: 100%;
+    }
+
+    .gi-userlist li.gi-local-user + li {
+      border-top: 1px solid #ddd;
+    }
+
+      /* Clearfix for li */
+      .gi-userlist li:before,
+      .gi-userlist li:after {
+          content: " ";
+          display: table;
+      }
+
+      .gi-userlist li:after {
+          clear: both;
+      }
+
+      /* Local user styling */
+      .gi-userlist li.gi-local-user {
+        padding: 6px 7px;
+        font-weight: 600;
+        background: #fff;
+      }
+
+  /* Avatar */
+  .gi-userlist .gi-avatar {
+    overflow: hidden;
+    width: 25px;
+    height: 21px;
+    border-radius: 2px;
+  }
+
+  .gi-userlist .gi-color {
+    position: relative;
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    background-image: url('images/sprite.png');
+    background-repeat: no-repeat;
+    background-position: -1px 0;
+    border-radius: 2px;
+  }
+
+    /* Transparent Avatar Border */
+    .gi-userlist .gi-color:before {
+      display:block;
+      content:'';
+      position:absolute;
+      width:100%;
+      height:100%;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.2);
+    }
+
+  .gi-userlist .gi-avatar .gi-avatar-img {
+    background: #f5f5f5;
+    width: 24px;
+    height: 24px;
+    vertical-align: top; /* Overrides breaking style in bootstrap */
+  }
+
+  /* Usernames */
+  .gi-userlist .gi-name {
+    display: inline-block;
+    overflow: hidden;
+    width: 102px;
+    padding: 0 0 1px 4px;
+    font-size: 13px;
+    line-height: 1;
+    margin-right: 20px;
+  }
+
+  .gi-inner.collapsed .gi-user {
+    overflow: visible;
+  }
+
+  .gi-userlist .gi-name.gi-no-options {
+    margin-right: 0;
+  }
+
+  .gi-userlist .gi-name span {
+    white-space: nowrap;
+  }
+
+  /* Change Username form */
+  .gi-userlist .gi-options {
+    position: absolute;
+    width: 100%;
+    height: auto;
+    border-radius: 3px;
+  }
+
+  .gi-userlist .gi-options input {
+    display: none;
+    float: right;
+    width: 103px;
+    padding: 5px 6px;
+    margin-top: 8px;
+    height: auto;
+    font: inherit;
+    font-size: 13px;
+    box-shadow: none;
+    border: 0;
+  }
+
+    .gi-userlist .gi-options input:focus {
+      outline: 0;
+    }
+
+    .gi-userlist.gi-relative .gi-options input {
+      width: 107px;
+    }
+
+    .gi-userlist .gi-options.set input {
+      display: block;
+    }
+
+    .gi-userlist .gi-inner.collapsed .gi-name,
+    .gi-userlist .gi-options.collapsed {
+      display: none;
+      overflow: visible;
+    }
+
+
+    /* Change username icons */
+    .gi-userlist .gi-options .gi-icon {
+      display: block;
+      float: right;
+      margin: 11px 12px 0 0;
+      background-position: -135px -4px;
+      cursor: pointer;
+    }
+
+/* 
+   Collapse Toggle
+   ========================================================================== */
+
+  .gi-userlist .gi-collapse {
+    position: absolute;
+    display: block;
+    width: 30px;
+    height: 25px;
+    bottom: -24px;
+    background: url('images/000000-0.7.png');
+    background: rgba(0,0,0,.7);
+    cursor: pointer;
+  }
+
+    .gi-userlist .gi-collapse:hover {
+      background: rgba(0,0,0,.8);
+    }
+
+    /* Hide collapse toggle when using custom container */
+    .gi-userlist.gi-relative .gi-collapse {
+      display: none;
+    }
+
+      .gi-userlist .gi-collapse .gi-icon {
+        margin: 3px 8px;
+      }
+
+      /* Positioning */
+      .gi-userlist.gi-right .gi-collapse {
+        right: 0;
+        border-radius: 0 0 0 3px;
+      }
+
+      .gi-userlist.gi-left .gi-collapse {
+        left: 0;
+        border-radius: 0 0 3px 0;
+      }
+      
+      /* Icon switching */
+      .gi-userlist.gi-right .gi-collapse .gi-icon,
+      .gi-userlist.gi-left .gi-collapse.collapsed .gi-icon {
+        background-position: -84px -5px;
+      }
+      
+      .gi-userlist.gi-left .gi-collapse .gi-icon,
+      .gi-userlist.gi-right .gi-collapse.collapsed .gi-icon {
+        background-position: -58px -5px;
+      }
+
+/* 
+   Helpers
+   ========================================================================== */
+
+.clearfix:before,
+.clearfix:after {
+  content: " ";
+  display: table;
 }
 
-.gi-userlist .gi-avatar .gi-avatar-img {
-  background: #f5f5f5;
-  width: 24px;
-  height: 24px;
-
-  vertical-align: top; /* Overrides breaking style in bootstrap */
+.clearfix:after {
+  clear: both;
 }
 
-.gi-inner.collapsed .gi-user {
-  overflow: visible;
-}
-
-.gi-userlist .gi-name {
-  display: inline-block;
-  overflow: hidden;
-  width: 80px;
-  padding: 0 10px;
-  font-size: 13px;
-  line-height: 2em;
-  margin-right: 20px;
-}
-
-.gi-userlist .gi-name.gi-no-options {
-  margin-right: 0;
-}
-
-.gi-userlist .gi-name span {
-  white-space: nowrap;
-}
-
-.gi-userlist .gi-options input {
-  display: none;
-  width: 80px;
-  height: 26px;
-  font: inherit;
-  font-size: 13px;
-  line-height: 26px;
-  margin-top: 4px;
-  border: none;
-  padding: 0px 10px 0px 10px;
-  float: right;
-  box-shadow: none;
-}
-
-.gi-userlist .gi-options input:focus {
-  outline: 0;
-}
-
-.gi-userlist .gi-options.set input {
-  display: block;
-}
-.gi-userlist .gi-inner.collapsed .gi-name,
-.gi-userlist .gi-options.collapsed {
-  display: none;
-  overflow: visible;
-}
-
-.gi-userlist .gi-options {
-  position: absolute;
-  width: 100%;
-  height: 30px;
-}
-
-.gi-userlist .gi-options span {
-  display: block;
-  width: 16px;
-  height: 16px;
-  background-image: url('images/options.png');
-  background-repeat: no-repeat;
-  margin: 8px 12px 8px 0;
-  cursor: pointer;
-  float: right;
-}
-
-.gi-userlist .gi-options.set span {
-  background-image: url('images/set.png');
-}
-
-.gi-userlist ul {
-  margin: 0;
-}
-
-.gi-userlist li {
-  height: 24px;
-  margin: 0;
-  overflow: hidden;
-  padding: 4px 5px;
-  width: 100%;
-  border-bottom: 1px solid #cbcbcb;
-  list-style: none;
-}
-
-/* Local user styling */
-.gi-userlist li.gi-local-user {
-  font-weight: 600;
-  background: #ffffff;
-}
-
-.gi-userlist li:last-child {
-  border-bottom: 0px;
-}
-
-/* Collapse Toggle */
-.gi-userlist .gi-collapse {
-  bottom: -30px;
-  display: block;
-  height: 27px;
-  position: absolute;
-  width: 34px;
-  background: #cbcbcb;
-  border-bottom: 3px solid #a6a6a6;
-  cursor: pointer;
-}
-
-.gi-userlist.gi-relative .gi-collapse {
-  display: none;
-}
-
-.gi-userlist.gi-right .gi-collapse {
-  right: 0;
-  border-left: 3px solid #a6a6a6;
-}
-
-.gi-userlist.gi-left .gi-collapse {
-  left: 0;
-  border-right: 3px solid #a6a6a6;
-}
-
-.gi-userlist .gi-collapse span {
-  display: block;
-  height: 16px;
-  margin: 5px 10px;
-  width: 11px;
-  background-image: url('images/collapse-arrow.png');
-}
-
-.gi-userlist.gi-left .gi-collapse span {
-  background-position: 11px;
-}
-
-.gi-userlist.gi-left .gi-collapse.collapsed span {
-  background-position: 0px;
-}
-
-.gi-userlist.gi-right .gi-collapse span {
-  background-position: 0px;
-}
-
-.gi-userlist.gi-right .gi-collapse.collapsed span {
-  background-position: 11px;
+.clearfix {
+  *zoom: 1;
 }
