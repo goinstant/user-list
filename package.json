@@ -1,6 +1,6 @@
 {
   "name": "user-list",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "user-list",
   "main": "Gruntfile.js",
   "scripts": {
