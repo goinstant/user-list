@@ -10,6 +10,13 @@
   background-repeat: no-repeat;
 }
 
+@media print, (-webkit-min-device-pixel-ratio: 1.25), (min-resolution: 120dpi) {
+  .gi-userlist .gi-icon {
+    background-image: url('images/sprite@2x.png');
+    background-size: 208px 52px;
+  }
+}
+
 /* 
    Userlist Element
    ========================================================================== */
@@ -247,7 +254,7 @@
     width: 30px;
     height: 25px;
     bottom: -24px;
-    background: url('images/000000-0.7.png');
+    background: url('images/transparent.png');
     background: rgba(0,0,0,.7);
     cursor: pointer;
   }
