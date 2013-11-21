@@ -6,14 +6,14 @@
   "keywords": [],
 
   "dependencies": {
-    "lodash/lodash": "*",
-    "stagas/binder": "*",
-    "component/emitter": "*",
-    "component/classes": "*",
-    "component/trim": "*",
-    "caolan/async": "*",
-    "goinstant/usercache": "*",
-    "goinstant/colors-common": "*"
+    "lodash/lodash": "2.3.0",
+    "stagas/binder": "0.0.1",
+    "component/emitter": "1.1.0",
+    "component/classes": "1.1.4",
+    "component/trim": "0.0.1",
+    "caolan/async": "f01b3992fbe7aa2f4881152143608ad666aea1cc",
+    "goinstant/usercache": "v1.0.0",
+    "goinstant/colors-common": "v1.0.0"
   },
 
   "development": {
