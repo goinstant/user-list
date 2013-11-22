@@ -144,6 +144,13 @@
     border-radius: 2px;
   }
 
+    @media print, (-webkit-min-device-pixel-ratio: 1.25), (min-resolution: 120dpi) {
+      .gi-userlist .gi-color {
+        background-image: url('images/sprite@2x.png');
+        background-size: 208px 52px;
+      }
+    }
+
     /* Transparent Avatar Border */
     .gi-userlist .gi-color:before {
       display:block;
@@ -168,7 +175,6 @@
     width: 102px;
     padding: 0 0 1px 4px;
     font-size: 13px;
-    line-height: 1;
     margin-right: 20px;
   }
 
