@@ -32,6 +32,7 @@
   position: relative;
   display: none;
   max-width: 170px;
+  line-height: 1.2;
   font-family: sans-serif;
   font-size: 14px;
   z-index: 9999;
@@ -98,8 +99,9 @@
     .gi-userlist li {
       height: auto;
       margin: 0;
-      overflow: hidden;
       padding: 5px 7px;
+      line-height: 1.2;
+      overflow: hidden;
       width: 100%;
     }
 
