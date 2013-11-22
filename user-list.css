@@ -10,7 +10,7 @@
   background-repeat: no-repeat;
 }
 
-/* 
+/*
    Userlist Element
    ========================================================================== */
 
@@ -32,7 +32,7 @@
   box-shadow: 0 1px 5px rgba(0,0,0,.2);
 }
 
-/* 
+/*
    Positioning
    ========================================================================== */
 
@@ -61,17 +61,17 @@
         border-radius: 0 3px 3px 0;
         border-left: 0;
       }
-    
+
     /* Custom Container */
     .gi-relative {
       position: relative;
     }
 
-/* 
+/*
    User List
    ========================================================================== */
-  
-/* Wrapper */ 
+
+/* Wrapper */
 .gi-userlist .gi-inner {
   display: block;
   margin: 0;
@@ -165,7 +165,7 @@
     margin-right: 20px;
   }
 
-  .gi-inner.collapsed .gi-user {
+  .gi-collapsed .gi-inner .gi-user {
     overflow: visible;
   }
 
@@ -206,12 +206,12 @@
       width: 107px;
     }
 
-    .gi-userlist .gi-options.set input {
+    .gi-userlist.gi-editing .gi-options input {
       display: block;
     }
 
-    .gi-userlist .gi-inner.collapsed .gi-name,
-    .gi-userlist .gi-options.collapsed {
+    .gi-userlist.gi-collapsed .gi-inner .gi-name,
+    .gi-userlist.gi-collapsed .gi-options {
       display: none;
       overflow: visible;
     }
@@ -232,12 +232,12 @@
       }
 
 
-    .gi-userlist .gi-options.set .gi-icon {
+    .gi-userlist.gi-editing .gi-options .gi-icon {
       margin: 12px 12px 0 0;
       background-position: -161px -5px;
     }
 
-/* 
+/*
    Collapse Toggle
    ========================================================================== */
 
@@ -275,19 +275,19 @@
         left: 0;
         border-radius: 0 0 3px 0;
       }
-      
+
       /* Icon switching */
       .gi-userlist.gi-right .gi-collapse .gi-icon,
-      .gi-userlist.gi-left .gi-collapse.collapsed .gi-icon {
+      .gi-userlist.gi-left.gi-collapsed .gi-collapse .gi-icon {
         background-position: -84px -5px;
       }
-      
+
       .gi-userlist.gi-left .gi-collapse .gi-icon,
-      .gi-userlist.gi-right .gi-collapse.collapsed .gi-icon {
+      .gi-userlist.gi-right.gi-collapsed .gi-collapse .gi-icon {
         background-position: -58px -5px;
       }
 
-/* 
+/*
    Helpers
    ========================================================================== */
 

@@ -11,7 +11,8 @@
 
 /** Module dependencies */
 var classes = require('classes');
-var Binder = require('binder');
+var prevent = require('prevent');
+var binder = require('binder');
 var async = require('async');
 var _ = require('lodash');
 
@@ -35,9 +36,10 @@ var RELATIVE_CLASS = 'gi-relative';
 var ALIGN_LEFT_CLASS = 'gi-left';
 var ALIGN_RIGHT_CLASS = 'gi-right';
 var DATA_GOINSTANT_ID = 'data-goinstant-id';
-var COLLAPSED_CLASS = 'collapsed';
+var COLLAPSED_CLASS = 'gi-collapsed';
 var NO_OPTIONS_CLASS = 'gi-no-options';
 
+var ESCAPE = 27;
 var ENTER = 13;
 var TAB = 9;
 
@@ -61,6 +63,10 @@ var defaultOpts = {
 };
 
 module.exports = UserList;
+
+UserList._UserCache = UserCache;
+UserList._UserView = UserView;
+UserList._binder = binder;
 
 /**
  * @constructor
@@ -100,29 +106,35 @@ module.exports = UserList;
 
   var validOpts = _.defaults(opts, defaultOpts);
 
+  // Options
   this._room = validOpts.room;
   this._collapsed = validOpts.collapsed;
   this._enableUserOptions = validOpts.userOptions;
-  this._optionsVisible = false;
   this._position = validOpts.position;
   this._container = validOpts.container;
   this._truncateLength = validOpts.truncateLength;
   this._avatars = validOpts.avatars;
-  this._wrapper = null;
+
+  // Elements
+  this.el = null;
+
   this._userList = null;
   this._collapseBtn = null;
   this._optionsOverlay = null;
   this._optionsIcon = null;
   this._optionsInput = null;
-  this._isBound = false;
-  this._nameChange = false;
 
-  this._userCache = new UserCache(this._room);
+  // Boolean State
+  this._editing = false;
+  this._isBound = false;
+
+  this._userCache = new UserList._UserCache(this._room);
 
   _.bindAll(this, [
     '_handleLeaveEvent',
     '_handleCollapseToggle',
-    '_setUserName',
+    '_clickEditUser',
+    '_keydownOptionsInput',
     '_handleUserMeta',
     '_handleJoinEvent',
     '_renderList'
@@ -154,11 +166,12 @@ UserList.prototype.initialize = function(cb) {
     }
 
     // Bind click event to collapse toggle.
-    Binder.on(self._collapseBtn, 'click', self._handleCollapseToggle);
+    UserList._binder.on(self._collapseBtn, 'click', self._handleCollapseToggle);
 
     if (self._optionsOverlay) {
-      Binder.on(self._optionsIcon, 'click', self._setUserName);
-      Binder.on(self._optionsInput, 'keydown', self._setUserName);
+      UserList._binder.on(self._optionsIcon, 'click', self._clickEditUser);
+      UserList._binder.on(self._optionsInput, 'keydown',
+                          self._keydownOptionsInput);
     }
 
     // Listen for userCache events.
@@ -169,15 +182,14 @@ UserList.prototype.initialize = function(cb) {
     self._isBound = true;
 
     return cb(null, self);
-
   });
 };
 
 UserList.prototype._append = function() {
-  this._wrapper = document.createElement('div');
-  this._wrapper.setAttribute('class', WRAPPER_CLASS + ' ' + OVERRIDE_CLASS);
+  this.el = document.createElement('div');
+  this.el.setAttribute('class', WRAPPER_CLASS + ' ' + OVERRIDE_CLASS);
 
-  this._wrapper.innerHTML = listTemplate;
+  this.el.innerHTML = listTemplate;
 
   // Check to see if userOptions is enabled
   // TODO: we will also want to check to see if the local user is in the room
@@ -185,7 +197,7 @@ UserList.prototype._append = function() {
   // would involve updating userCache#getLocalUser to return null if there
   // isn't a local user.
 
-  var userOptions = this._wrapper.querySelector('.' + OPTIONS_OVERLAY_CLASS);
+  var userOptions = this.el.querySelector('.' + OPTIONS_OVERLAY_CLASS);
 
   if (this._enableUserOptions) {
     this._optionsOverlay = userOptions;
@@ -193,34 +205,34 @@ UserList.prototype._append = function() {
     this._optionsInput = this._optionsOverlay.children[1];
 
   } else {
-    classes(this._wrapper).add(NO_OPTIONS_CLASS);
-    this._wrapper.removeChild(userOptions);
+    classes(this.el).add(NO_OPTIONS_CLASS);
+    this.el.removeChild(userOptions);
   }
 
   // Check if user passed a container and if so, append user list to it
   if (this._container) {
-    this._container.appendChild(this._wrapper);
+    this._container.appendChild(this.el);
 
-    classes(this._wrapper).add(RELATIVE_CLASS);
+    classes(this.el).add(RELATIVE_CLASS);
 
   } else {
-    document.body.appendChild(this._wrapper);
+    document.body.appendChild(this.el);
 
-    classes(this._wrapper).add(ANCHOR_CLASS);
+    classes(this.el).add(ANCHOR_CLASS);
   }
 
-  this._userList = this._wrapper.querySelector('.' + INNER_CLASS);
-  this._collapseBtn = this._wrapper.querySelector('.' + COLLAPSE_BTN_CLASS);
+  this._userList = this.el.querySelector('.' + INNER_CLASS);
+  this._collapseBtn = this.el.querySelector('.' + COLLAPSE_BTN_CLASS);
 
   // Check if user passed the option for collapsed on load
   this._collapse(this._collapsed);
 
   // Pass the position either default or user set as a class
   if (!this._container && this._position === 'right') {
-    classes(this._wrapper).add(ALIGN_RIGHT_CLASS);
+    classes(this.el).add(ALIGN_RIGHT_CLASS);
 
   } else if (!this._container) {
-    classes(this._wrapper).add(ALIGN_LEFT_CLASS);
+    classes(this.el).add(ALIGN_LEFT_CLASS);
   }
 };
 
@@ -233,17 +245,14 @@ UserList.prototype._renderList = function(cb) {
     users,
 
     function(user, next) {
-      var userView = new UserView(self);
+      var userView = new UserList._UserView(self);
 
       userView.render(user, next);
     },
 
-    function(err) {
-      if (err) {
-        return cb(err);
-      }
-
-      self._wrapper.style.display = 'block';
+    function() {
+      // userView rendering cannot fail
+      self.el.style.display = 'block';
 
       return cb();
     }
@@ -254,7 +263,7 @@ UserList.prototype._renderList = function(cb) {
  * @private
  */
 UserList.prototype._handleLeaveEvent = function(user) {
-  if (!this._wrapper) {
+  if (!this.el) {
     return;
   }
 
@@ -268,7 +277,7 @@ UserList.prototype._handleLeaveEvent = function(user) {
 UserList.prototype._queryUser = function(userId) {
   var dataQuery = '[' + DATA_GOINSTANT_ID + '="' + userId + '"]';
 
-  var userEl = this._wrapper.querySelector(dataQuery);
+  var userEl = this.el.querySelector(dataQuery);
 
   return userEl;
 };
@@ -278,73 +287,109 @@ UserList.prototype._handleCollapseToggle = function() {
 };
 
 UserList.prototype._collapse = function(toggle) {
-  if (toggle) {
-    classes(this._userList).add(COLLAPSED_CLASS);
-    classes(this._collapseBtn).add(COLLAPSED_CLASS);
+  var classList = classes(this.el);
 
-    if (this._optionsOverlay) {
-      classes(this._optionsOverlay).add(COLLAPSED_CLASS);
-    }
+  if (toggle) {
+    classList.add(COLLAPSED_CLASS);
     this._collapsed = true;
 
-  } else {
-    classes(this._userList).remove(COLLAPSED_CLASS);
-    classes(this._collapseBtn).remove(COLLAPSED_CLASS);
+    this._deactivateEditing();
 
-    if (this._optionsOverlay) {
-      classes(this._optionsOverlay).remove(COLLAPSED_CLASS);
-    }
+  } else {
+    classList.remove(COLLAPSED_CLASS);
+
     this._collapsed = false;
   }
 };
 
-UserList.prototype._setUserName = function(event) {
-  // Only accept these
-  var isValidKey = event.keyCode === ENTER || event.keyCode === TAB;
-  var isValidClick = event.type === 'click';
+UserList.prototype._keydownOptionsInput = function(event) {
+  var self = this;
 
-  // Ignore other events
-  if (!isValidKey && !isValidClick) {
-    return;
+  switch (event.keyCode) {
+    case ESCAPE:
+      prevent(event);
+
+      self._deactivateEditing();
+
+      break;
+
+    case ENTER:
+    case TAB:
+      prevent(event);
+
+      self._submitNameChange(function(err) {
+        if (err) {
+          self._deactivateEditing();
+        }
+      });
+
+      break;
   }
+};
 
-  var localUser = this._userCache.getLocalUser();
+UserList.prototype._clickEditUser = function(event, cb) {
 
-  // Open the options
-  if (isValidClick && !this._optionsVisible) {
-    classes(this._optionsOverlay).add('set');
-
-    this._optionsInput.focus();
-    this._optionsInput.value = localUser.displayName;
-    this._optionsVisible = true;
-
-    return;
-  }
-
-  var name = _.escape(this._optionsInput.value);
-
-  if (name === localUser.displayName) {
-     // Close the options
-    classes(this._optionsOverlay).remove('set');
-    this._optionsVisible = false;
-    return;
-  }
-
-  var userKey = this._userCache.getLocalUserKey();
+  prevent(event);
 
   var self = this;
 
-  userKey.key('displayName').set(name, function(err) {
-    self._optionsVisible = false;
+  if (self._editing) {
+    self._submitNameChange(function(err) {
+      if (err) {
+        self._deactivateEditing();
+      }
 
+      if (cb) {
+        return cb();
+      }
+    });
+
+  } else {
+    self._activateEditing();
+
+    if (cb) {
+      return cb();
+    }
+  }
+};
+
+UserList.prototype._submitNameChange = function(cb) {
+  var self = this;
+
+  var localUser = self._userCache.getLocalUser();
+  var name = _.escape(self._optionsInput.value);
+
+  if (name === localUser.displayName) {
+    this._deactivateEditing();
+    return cb();
+  }
+
+  var userKey = self._userCache.getLocalUserKey();
+
+  userKey.key('displayName').set(name, function(err) {
     if (err) {
-      // Close the options, name was not set
-      classes(self._optionsOverlay).remove('set');
-      return;
+      return cb(err);
     }
 
-    self._nameChange = true;
+    return cb();
   });
+};
+
+UserList.prototype._activateEditing = function() {
+  this._editing = true;
+
+  var localUser = this._userCache.getLocalUser();
+  this._optionsInput.value = localUser.displayName;
+
+  classes(this.el).add('gi-editing');
+
+  this._optionsInput.focus();
+};
+
+UserList.prototype._deactivateEditing = function() {
+  this._editing = false;
+
+  classes(this.el).remove('gi-editing');
 };
 
 UserList.prototype._handleUserMeta = function(user, keyName) {
@@ -354,7 +399,7 @@ UserList.prototype._handleUserMeta = function(user, keyName) {
     return;
   }
 
-  var userView = new UserView(this);
+  var userView = new UserList._UserView(this);
 
   var self = this;
 
@@ -363,16 +408,14 @@ UserList.prototype._handleUserMeta = function(user, keyName) {
       throw err;
     }
 
-    // Hide the userOptions once the name change renders.
-    if (self._nameChange) {
-      classes(self._optionsOverlay).remove('set');
-      self._nameChange = false;
+    if (user.id == self._userCache.getLocalUser().id) {
+      self._deactivateEditing();
     }
   });
 };
 
 UserList.prototype._handleJoinEvent = function(user) {
-  var userView = new UserView(this);
+  var userView = new UserList._UserView(this);
   userView.render(user, function(err) {
     if (err) {
       throw err;
@@ -390,13 +433,23 @@ UserList.prototype.destroy = function(cb) {
     this._userCache.off('leave', this._handleLeaveEvent);
     this._userCache.off('change', this._handleUserMeta);
 
-    Binder.off(this._collapseBtn, 'click', this._handleCollapseToggle);
+    UserList._binder.off(this._collapseBtn, 'click',
+                         this._handleCollapseToggle);
+
+    if (this._optionsOverlay) {
+      UserList._binder.off(this._optionsIcon, 'click',
+                           this._clickEditUser);
+
+      UserList._binder.off(this._optionsInput, 'keydown',
+                           this._keydownOptionsInput);
+    }
+
     this._isBound = false;
   }
 
-  if (this._wrapper) {
-    this._wrapper.parentNode.removeChild(this._wrapper);
-    this._wrapper = null;
+  if (this.el) {
+    this.el.parentNode.removeChild(this.el);
+    this.el = null;
   }
 
   this._userCache.destroy(cb);

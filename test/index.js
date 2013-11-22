@@ -4,18 +4,75 @@
 describe('User-List Component', function() {
   "use strict";
 
-  var assert = window.assert;
-
   var UserList = require('user-list');
 
-  var fakeRoom;
+  var assert = window.assert;
+
+  var classes = require('classes');
+  var _ = require('lodash');
 
   var testUserList;
 
+  var sandbox;
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
+
+  var userList;
+
+  var fakeRoom;
+  var fakeUsers;
+  var fakeUserView;
+  var fakeUserCache;
+  var fakeLocalUser;
+  var fakeLocalUserKey;
+  var fakeDisplayNameKey;
+
+  beforeEach(function() {
+    fakeRoom = {};
+
+    fakeUsers = [
+      {
+        displayName: 'Jose',
+        id: 3
+      },
+      {}
+    ];
+
+    fakeLocalUser = fakeUsers[0];
+
+    fakeDisplayNameKey = {
+      set: sinon.stub().yields()
+    };
+    fakeLocalUserKey = {
+      key: sinon.stub().withArgs('displayName').returns(fakeDisplayNameKey)
+    };
+
+    fakeUserCache = {
+      initialize: sinon.stub().yields(),
+      on: sinon.stub(),
+      off: sinon.stub(),
+      destroy: sinon.stub().yields(),
+      getAll: sinon.stub().returns(fakeUsers),
+      getLocalUser: sinon.stub().returns(fakeLocalUser),
+      getLocalUserKey: sinon.stub().returns(fakeLocalUserKey)
+    };
+
+    fakeUserView = {
+      render: sinon.stub().yields()
+    };
+
+    sandbox.stub(UserList, '_UserCache').returns(fakeUserCache);
+    sandbox.stub(UserList, '_UserView').returns(fakeUserView);
+    sandbox.spy(UserList._binder, 'on');
+    sandbox.spy(UserList._binder, 'off');
+  });
+
   describe('constructor', function() {
-    beforeEach(function() {
-      fakeRoom = {};
-    });
 
     it('returns new instance object correctly', function() {
       var options = {
@@ -144,6 +201,283 @@ describe('User-List Component', function() {
           testUserList = new UserList(options);
         }, 'UserList: userOptions must be a boolean');
       });
+    });
+  });
+
+  describe('initialize', function() {
+    it('hides the options when disabled', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        userOptions: false
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.ok(classes(userList.el).has('gi-no-options'));
+
+        done();
+      });
+    });
+
+    it('uses a container and applies the relative class', function(done) {
+      var container = document.createElement('div');
+
+      userList = new UserList({
+        room: fakeRoom,
+        container: container
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.equal(userList.el, container.children[0]);
+        assert.ok(classes(userList.el).has('gi-relative'));
+        assert.notOk(classes(userList.el).has('gi-anchor'));
+
+        done();
+      });
+    });
+
+    it('positions on the right', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        position: 'right'
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.ok(classes(userList.el).has('gi-right'));
+
+        done();
+      });
+    });
+
+    it('positions on the left', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        position: 'left'
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.ok(classes(userList.el).has('gi-left'));
+
+        done();
+      });
+    });
+
+    it('collapses', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        collapsed: true
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.ok(classes(userList.el).has('gi-collapsed'));
+
+        done();
+      });
+    });
+
+    it('expands', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        collapsed: false
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.notOk(classes(userList.el).has('gi-collapsed'));
+
+        done();
+      });
+    });
+
+    describe('defaults', function() {
+      beforeEach(function(done) {
+        var options = {
+          room: fakeRoom
+        };
+
+        userList = new UserList(options);
+        userList.initialize(function(err) {
+          assert.ifError(err);
+          done();
+        });
+      });
+
+      afterEach(function(done) {
+        userList.destroy(function() {
+          done();
+        });
+      });
+
+      it('initializes and binds to the userCache', function() {
+        sinon.assert.calledOnce(fakeUserCache.initialize);
+        sinon.assert.calledWith(
+          fakeUserCache.on,
+          'join',
+          userList._handleJoinEvent
+        );
+
+        sinon.assert.calledWith(
+          fakeUserCache.on,
+          'leave',
+          userList._handleLeaveEvent
+        );
+
+        sinon.assert.calledWith(
+          fakeUserCache.on,
+          'change',
+          userList._handleUserMeta
+        );
+      });
+
+      it('binds to events for options', function() {
+        sinon.assert.calledWith(
+          UserList._binder.on,
+          sinon.match({className: 'gi-collapse'}),
+          'click',
+          userList._handleCollapseToggle
+        );
+
+        sinon.assert.calledWith(
+          UserList._binder.on,
+          sinon.match({className: 'gi-icon'}),
+          'click',
+          userList._clickEditUser
+        );
+
+        sinon.assert.calledWith(
+          UserList._binder.on,
+          sinon.match({className: 'gi-set-name'}),
+          'keydown',
+          userList._keydownOptionsInput
+        );
+      });
+
+      it('renders a view for each user', function() {
+        sinon.assert.callCount(fakeUserView.render, fakeUsers.length);
+
+        _.each(fakeUsers, function(u) {
+          sinon.assert.calledWith(fakeUserView.render, u);
+        });
+      });
+
+      it('is displayed properly', function() {
+        assert.notOk(classes(userList.el).has('gi-no-options'));
+        assert.ok(classes(userList.el).has('gi-anchor'));
+
+        assert.include(document.body.children, userList.el);
+      });
+    });
+  });
+
+  describe('user controls', function() {
+    beforeEach(function(done) {
+      var options = {
+        room: fakeRoom
+      };
+
+      userList = new UserList(options);
+      userList.initialize(function(err) {
+        assert.ifError(err);
+        done();
+      });
+    });
+
+    it('toggles when collapse is clicked', function() {
+      userList._handleCollapseToggle();
+
+      assert.ok(classes(userList.el).has('gi-collapsed'));
+
+      userList._handleCollapseToggle();
+
+      assert.notOk(classes(userList.el).has('gi-collapsed'));
+    });
+
+    describe('editing your name', function() {
+      it('toggles editing, and does not save when no change', function(done) {
+        userList._clickEditUser({}, function() {
+          assert.ok(classes(userList.el).has('gi-editing'));
+
+          userList._clickEditUser({}, function() {
+            assert.notOk(classes(userList.el).has('gi-editing'));
+
+            sinon.assert.notCalled(fakeDisplayNameKey.set);
+
+            done();
+          });
+        });
+      });
+
+      it('sets the new name when changed', function(done) {
+        userList._clickEditUser({}, function() {
+          assert.ok(classes(userList.el).has('gi-editing'));
+
+          var input = userList.el.querySelector('input');
+          input.value = 'cool';
+
+          userList._clickEditUser({}, function() {
+            sinon.assert.calledWith(fakeDisplayNameKey.set, 'cool');
+
+            done();
+          });
+        });
+
+      });
+
+      it('stops editing when collapse is clicked', function(done) {
+        userList._clickEditUser({}, function() {
+          assert.ok(classes(userList.el).has('gi-editing'));
+
+          userList._handleCollapseToggle({});
+
+          assert.notOk(classes(userList.el).has('gi-editing'));
+
+          done();
+        });
+      });
+    });
+  });
+
+  describe('users', function() {
+    beforeEach(function(done) {
+      var options = {
+        room: fakeRoom
+      };
+
+      userList = new UserList(options);
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        fakeUserView.render.reset();
+
+        done();
+      });
+    });
+
+    it('are rendered when they join', function() {
+      var user = {};
+      userList._handleJoinEvent(user);
+
+      sinon.assert.calledWith(fakeUserView.render, user);
+    });
+
+    it('are rendered when they change', function() {
+      var user = {
+        displayName: 'whatever'
+      };
+
+      userList._handleUserMeta(user, '/.users/awessdsdas/displayName');
+
+      sinon.assert.calledWith(fakeUserView.render, user);
     });
   });
 });
