@@ -21,7 +21,7 @@
    Userlist Element
    ========================================================================== */
 
-/* Change the box model */
+/* Change the box model and font smoothing */
 .gi-userlist * {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -161,6 +161,7 @@
       width:100%;
       height:100%;
       box-shadow: inset 0 0 0 1px rgba(0,0,0,.2);
+      border-radius: 2px;
     }
 
   .gi-userlist .gi-avatar .gi-avatar-img {
@@ -265,6 +266,10 @@
     background: url('images/transparent.png');
     background: rgba(0,0,0,.7);
     cursor: pointer;
+    /* Prevent selection of elements from click */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
 
     .gi-userlist .gi-collapse:hover {
