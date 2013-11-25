@@ -377,6 +377,63 @@ describe('User-List Component', function() {
         assert.include(document.body.children, userList.el);
       });
     });
+
+    describe('destroy', function() {
+      beforeEach(function(done) {
+        userList.initialize(function(err) {
+          assert.ifError(err);
+
+          userList.destroy(function(err) {
+            assert.ifError(err);
+
+            done();
+          });
+        });
+      });
+
+      it('initializes and binds to the userCache', function() {
+        sinon.assert.calledWith(
+          userList._userCache.off,
+          'join',
+          userList._handleJoinEvent
+        );
+
+        sinon.assert.calledWith(
+          userList._userCache.off,
+          'leave',
+          userList._handleLeaveEvent
+        );
+
+        sinon.assert.calledWith(
+          userList._userCache.off,
+          'change',
+          userList._handleUserMeta
+        );
+      });
+
+      it('binds to events for options', function() {
+        sinon.assert.calledWith(
+          UserList._binder.off,
+          sinon.match({className: 'gi-collapse'}),
+          'click',
+          userList._handleCollapseToggle
+        );
+
+        sinon.assert.calledWith(
+          UserList._binder.off,
+          sinon.match({className: 'gi-icon'}),
+          'click',
+          userList._clickEditUser
+        );
+
+        sinon.assert.calledWith(
+          UserList._binder.off,
+          sinon.match({className: 'gi-set-name'}),
+          'keydown',
+          userList._keydownOptionsInput
+        );
+      });
+    });
   });
 
   describe('user controls', function() {
@@ -427,7 +484,26 @@ describe('User-List Component', function() {
           userList._clickEditUser({}, function() {
             sinon.assert.calledWith(fakeDisplayNameKey.set, 'cool');
 
-            done();
+            assert.ok(classes(userList.el).has('gi-editing'));
+
+
+            // We wait until the change comes back to the local platform
+            // listener before displaying it.
+            var updatedFakeLocalUser = _.clone(fakeLocalUser);
+            updatedFakeLocalUser.displayName = 'cool';
+
+            var keyName =  '/.users/231232131232/displayName';
+
+            userList._handleUserMeta(updatedFakeLocalUser, keyName, function() {
+              assert.notOk(classes(userList.el).has('gi-editing'));
+
+              sinon.assert.calledWith(
+                fakeUserView.render,
+                updatedFakeLocalUser
+              );
+
+              done();
+            });
           });
         });
 

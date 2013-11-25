@@ -392,7 +392,7 @@ UserList.prototype._deactivateEditing = function() {
   classes(this.el).remove('gi-editing');
 };
 
-UserList.prototype._handleUserMeta = function(user, keyName) {
+UserList.prototype._handleUserMeta = function(user, keyName, cb) {
   // Ignore user properties that don't affect the user list.
   if (!colors.isUserProperty(keyName) && !DISPLAYNAME_REGEX.test(keyName) &&
       !AVATARURL_REGEX.test(keyName)) {
@@ -403,23 +403,21 @@ UserList.prototype._handleUserMeta = function(user, keyName) {
 
   var self = this;
 
-  userView.render(user, function(err) {
-    if (err) {
-      throw err;
-    }
-
+  userView.render(user, function() {
     if (user.id == self._userCache.getLocalUser().id) {
       self._deactivateEditing();
+    }
+
+    if (cb) {
+      return cb();
     }
   });
 };
 
 UserList.prototype._handleJoinEvent = function(user) {
   var userView = new UserList._UserView(this);
-  userView.render(user, function(err) {
-    if (err) {
-      throw err;
-    }
+  userView.render(user, function() {
+
   });
 };
 
