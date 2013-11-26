@@ -455,6 +455,12 @@ describe('User-List Component', function() {
       });
     });
 
+    afterEach(function(done) {
+      userList.destroy(function() {
+        done();
+      });
+    });
+
     it('toggles when collapse is clicked', function() {
       userList._handleCollapseToggle();
 
@@ -541,6 +547,12 @@ describe('User-List Component', function() {
 
         fakeUserView.render.reset();
 
+        done();
+      });
+    });
+
+    afterEach(function(done) {
+      userList.destroy(function() {
         done();
       });
     });
