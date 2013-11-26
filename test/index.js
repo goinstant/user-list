@@ -205,6 +205,12 @@ describe('User-List Component', function() {
   });
 
   describe('initialize', function() {
+    afterEach(function(done) {
+      userList.destroy(function() {
+        done();
+      });
+    });
+
     it('hides the options when disabled', function(done) {
       userList = new UserList({
         room: fakeRoom,
