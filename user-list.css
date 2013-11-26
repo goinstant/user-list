@@ -31,14 +31,31 @@
 .gi-userlist {
   position: relative;
   display: none;
-  max-width: 170px;
+  width: 175px;
   line-height: 1.2;
   font-family: sans-serif;
   font-size: 14px;
   z-index: 9999;
   border-radius: 3px;
   box-shadow: 0 1px 5px rgba(0,0,0,.2);
+  transition: width .35s cubic-bezier(0,.9,.45,.9);
 }
+
+  .gi-userlist.gi-collapsed {
+    width: 40px;
+  }
+
+  .gi-userlist .gi-name,
+  .gi-userlist .gi-options {
+    opacity: 1;
+    transition: all .4s linear;
+  }
+
+  .gi-userlist.gi-collapsed .gi-name,
+  .gi-userlist.gi-collapsed .gi-options {
+    opacity: 0;
+    transition: all .3s cubic-bezier(0,.9,.45,.9);
+  }
 
 /* 
    Positioning
@@ -99,10 +116,11 @@
     .gi-userlist li {
       height: auto;
       margin: 0;
+      width: 100%;
       padding: 5px 7px;
       line-height: 1.2;
       overflow: hidden;
-      width: 100%;
+      white-space: nowrap;
     }
 
     .gi-userlist li.gi-local-user + li {
@@ -175,7 +193,7 @@
   .gi-userlist .gi-name {
     display: inline-block;
     overflow: hidden;
-    width: 102px;
+    width: 107px;
     padding: 0 0 1px 4px;
     font-size: 13px;
     margin-right: 20px;
@@ -204,8 +222,8 @@
   .gi-userlist .gi-options input {
     display: none;
     float: right;
-    width: 103px;
-    padding: 5px 6px;
+    width: 107px;
+    padding: 4px 1px;
     margin-top: 8px;
     height: auto;
     font: inherit;
@@ -240,7 +258,8 @@
       margin: 11px 12px 0 0;
       background-position: -135px -4px;
       cursor: pointer;
-      opacity: .9;
+      opacity: .8;
+      transition: opacity .15s linear;
     }
 
       .gi-userlist .gi-options .gi-icon:hover {
@@ -266,6 +285,7 @@
     background: url('images/transparent.png');
     background: rgba(0,0,0,.7);
     cursor: pointer;
+    transition: background .15s linear;
     /* Prevent selection of elements from click */
     -webkit-user-select: none;
     -moz-user-select: none;
