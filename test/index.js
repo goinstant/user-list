@@ -4,100 +4,75 @@
 describe('User-List Component', function() {
   "use strict";
 
-  var assert = window.assert;
-  var async = require('async');
-  var _ = require('lodash');
-  var $ = require('jquery');
-
   var UserList = require('user-list');
-  var UserView = require('user-list/lib/user_view.js');
 
-  var colors = require('colors-common');
+  var assert = window.assert;
 
-  var fakeRoom;
-  var fakeUser;
-  var fakeUserKey;
-
-  var fakeUsers;
-  var fakeUsersKey;
-  var fakeUserKeys;
+  var classes = require('classes');
+  var _ = require('lodash');
 
   var testUserList;
 
-  function createFakeKey(name) {
-    return {
-      name: name,
-      get: sinon.stub().yields(),
-      set: sinon.stub(),
-      key: createFakeKey,
-      remove: sinon.stub().yields(),
-      on: sinon.stub().callsArg(2),
-      off: sinon.stub().callsArg(2)
-    };
-  }
+  var sandbox;
+  beforeEach(function() {
+    sandbox = sinon.sandbox.create();
+  });
+
+  afterEach(function() {
+    sandbox.restore();
+  });
+
+  var userList;
+
+  var fakeRoom;
+  var fakeUsers;
+  var fakeUserView;
+  var fakeUserCache;
+  var fakeLocalUser;
+  var fakeLocalUserKey;
+  var fakeDisplayNameKey;
 
   beforeEach(function() {
     fakeRoom = {};
-    fakeUser = {
-      displayName: 'Guest 1',
-      id: '1234'
-    };
-    fakeUser[colors.USER_PROPERTY] = '#FF0000';
 
-    fakeUserKey = createFakeKey('guest1');
-    fakeRoom.user = sinon.stub().yields(null, fakeUser, fakeUserKey);
-    fakeRoom._platform = {
-      _user: {
-        id: fakeUser.id
-      }
-    };
-
-    fakeUsers = {
-      1234: {
-        displayName: 'Guest 1',
-        id: '1234'
+    fakeUsers = [
+      {
+        displayName: 'Jose',
+        id: 3
       },
-      5678: {
-        displayName: 'Guest 2',
-        id: '5678'
-      }
-    };
-
-    fakeUserKeys = [
-      createFakeKey(),
-      createFakeKey()
+      {}
     ];
 
-    fakeUsersKey = createFakeKey('/.users');
+    fakeLocalUser = fakeUsers[0];
 
-    fakeRoom.users = sinon.stub().yields(null, fakeUsers, fakeUserKeys);
-    fakeRoom.key = sinon.stub();
-    fakeRoom.key.returns(createFakeKey());
-    fakeRoom.key.withArgs('/.users').returns(fakeUsersKey);
-    fakeRoom.on = sinon.stub().callsArg(2);
-    fakeRoom.off = sinon.stub().callsArg(2);
-    fakeRoom.users.on = sinon.stub().callsArg(2);
-    fakeRoom.users.off = sinon.stub().callsArg(2);
+    fakeDisplayNameKey = {
+      set: sinon.stub().yields()
+    };
+    fakeLocalUserKey = {
+      key: sinon.stub().withArgs('displayName').returns(fakeDisplayNameKey)
+    };
+
+    fakeUserCache = {
+      initialize: sinon.stub().yields(),
+      on: sinon.stub(),
+      off: sinon.stub(),
+      destroy: sinon.stub().yields(),
+      getAll: sinon.stub().returns(fakeUsers),
+      getLocalUser: sinon.stub().returns(fakeLocalUser),
+      getLocalUserKey: sinon.stub().returns(fakeLocalUserKey)
+    };
+
+    fakeUserView = {
+      render: sinon.stub().yields()
+    };
+
+    sandbox.stub(UserList, '_UserCache').returns(fakeUserCache);
+    sandbox.stub(UserList, '_UserView').returns(fakeUserView);
+    sandbox.spy(UserList._binder, 'on');
+    sandbox.spy(UserList._binder, 'off');
   });
 
   describe('constructor', function() {
-    afterEach(function(done) {
-      var el = document.querySelector('.gi-userlist');
-
-      if (!testUserList || !el) {
-        return done();
-      }
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        testUserList = null;
-
-        done();
-      });
-    });
 
     it('returns new instance object correctly', function() {
       var options = {
@@ -105,6 +80,7 @@ describe('User-List Component', function() {
       };
 
       testUserList = new UserList(options);
+      testUserList._userCache.initialize = sinon.stub().yields();
 
       assert.isObject(testUserList);
     });
@@ -228,647 +204,374 @@ describe('User-List Component', function() {
     });
   });
 
-  describe('.initialize', function() {
-    beforeEach(function() {
-      var options = {
-        room: fakeRoom
-      };
-
-      testUserList = new UserList(options);
-    });
-
+  describe('initialize', function() {
     afterEach(function(done) {
-      var el = document.querySelector('.gi-userlist');
-
-      if (!testUserList || !el) {
-        return done();
-      }
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        testUserList = null;
-
+      userList.destroy(function() {
         done();
       });
     });
 
-    it('successfully calls on initialize', function(done) {
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
-    it('renders the user list in the DOM', function(done) {
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        var container = document.querySelector('.gi-userlist');
-        var inner = document.querySelector('.gi-inner');
-        var collapseBtn = document.querySelector('.gi-collapse');
-
-        assert(container);
-        assert(inner);
-        assert(collapseBtn);
-
-        done();
-      });
-    });
-
-    describe('errors', function() {
-      it('throws an error if not passed a callback', function() {
-        assert.exception(function() {
-          testUserList.initialize();
-        }, 'initialize: Callback was not found or invalid');
-      });
-
-      it('throws an error if passed callback is not a function', function() {
-        assert.exception(function() {
-          testUserList.initialize({});
-        }, 'initialize: Callback was not found or invalid');
-      });
-    });
-  });
-
-  describe('.destroy', function() {
-    beforeEach(function(done) {
-      var options = {
-        room: fakeRoom
-      };
-
-      testUserList = new UserList(options);
-
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
-    it('successfully calls destroy with no error returned', function(done) {
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
-    it('verifies room "leave" listener has been removed', function(done) {
-      var fakeRoom = testUserList._room;
-      var listener = fakeRoom.on.args[0][1];
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        assert(fakeRoom.off.calledWith('leave', listener));
-
-        done();
-      });
-    });
-
-    it('verifies room "join" listener has been removed', function(done) {
-      var fakeRoom = testUserList._room;
-      var listener = fakeRoom.on.args[1][1];
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        assert(fakeRoom.off.calledWith('join', listener));
-
-        done();
-      });
-    });
-
-    it('verifies users key "set" listener is removed', function(done) {
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        var listener = fakeUsersKey.on.args[0][1].listener;
-
-        assert(fakeUsersKey.off.calledWith('set', listener));
-
-        done();
-      });
-    });
-
-    it('verifies user list container element doesn\'t exist', function(done) {
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        var container = document.querySelector('.gi-userlist');
-        var inner = document.querySelector('.gi-inner');
-        var collapseBtn = document.querySelector('.gi-collapse');
-
-        assert(!container);
-        assert(!inner);
-        assert(!collapseBtn);
-
-        done();
-      });
-    });
-  });
-
-  describe('platform events', function() {
-    beforeEach(function(done) {
-      var options = {
-        room: fakeRoom
-      };
-
-      testUserList = new UserList(options);
-
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        done();
-      });
-    });
-
-    afterEach(function(done) {
-      var el = document.querySelector('.gi-userlist');
-
-      if (!testUserList || !el) {
-        return done();
-      }
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        testUserList = null;
-
-        done();
-      });
-    });
-
-    it('updates the users displayName when it is updated', function() {
-      var updatedUser = {
-        displayName: 'Duck',
-        id: '1234',
-        avatarColor: '#FF0000'
-      };
-
-      var keyName = '/.users/guest:1234/displayName';
-
-      testUserList._userCache._emitter.emit('change', updatedUser, keyName);
-
-      var query = '[data-goinstant-id="'+updatedUser.id+'"]';
-      var el = document.querySelector(query);
-
-      var displayName = el.querySelector('.gi-name span').innerHTML;
-
-      assert.equal(displayName, updatedUser.displayName);
-    });
-
-    it('ignores user updates it doesnt care about', function() {
-      var updatedUser = {
-        displayName: 'Duck',
-        id: '1234',
-        avatarColor: '#FF0000',
-        foo: 'bar'
-      };
-
-      var keyName = '/.users/guest:1234/foo';
-      sinon.stub(UserView.prototype, 'render').yields();
-
-      testUserList._userCache._emitter.emit('change', updatedUser, keyName);
-
-      sinon.assert.notCalled(UserView.prototype.render);
-      UserView.prototype.render.restore();
-    });
-
-    it('adds the user successfully on "join" event', function() {
-      var listener = fakeRoom.on.args[1][1];
-
-      listener(fakeUser);
-
-      var el = document.querySelector('[data-goinstant-id="'+fakeUser.id+'"]');
-
-      assert(el);
-    });
-
-    it('removes the user successfully on "leave" event', function() {
-      var listener = fakeRoom.on.args[0][1];
-
-      listener(fakeUser);
-
-      var el = document.querySelector('[data-goinstant-id="'+fakeUser.id+'"]');
-
-      assert(!el);
-    });
-
-    it('handles a user without a displayName', function() {
-      var listener = fakeRoom.on.args[1][1];
-
-      delete fakeUser.displayName;
-      listener(fakeUser);
-
-      var el = document.querySelector('[data-goinstant-id="'+fakeUser.id+'"]');
-
-      assert(el);
-    });
-
-    it('handles a user with a non-string displayName', function() {
-      var listener = fakeRoom.on.args[1][1];
-
-      fakeUser.displayName = {};
-      listener(fakeUser);
-
-      var el = document.querySelector('[data-goinstant-id="'+fakeUser.id+'"]');
-
-      assert(el);
-    });
-
-  });
-
-  describe('truncate', function() {
-    var testUserList;
-
-    beforeEach(function(done) {
-      var options = {
+    it('hides the options when disabled', function(done) {
+      userList = new UserList({
         room: fakeRoom,
-        truncateLength: 3
-      };
+        userOptions: false
+      });
 
-      testUserList = new UserList(options);
+      userList.initialize(function(err) {
+        assert.ifError(err);
 
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
+        assert.ok(classes(userList.el).has('gi-no-options'));
 
         done();
       });
     });
 
-    afterEach(function(done) {
-      var el = document.querySelector('.gi-userlist');
+    it('uses a container and applies the relative class', function(done) {
+      var container = document.createElement('div');
 
-      if (!testUserList || !el) {
-        return done();
-      }
-
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        testUserList = null;
-
-        done();
-      });
-    });
-
-    it('truncates overlaps with ...', function() {
-      var els = document.querySelectorAll('.gi-name span');
-
-      _.each(els, function(el) {
-        assert.equal(el.innerHTML, "Gue...");
-      });
-    });
-  });
-
-  describe('truncate', function() {
-    var testUserList;
-
-    beforeEach(function(done) {
-      var options = {
+      userList = new UserList({
         room: fakeRoom,
-        truncateLength: 5
-      };
+        container: container
+      });
 
-      testUserList = new UserList(options);
+      userList.initialize(function(err) {
+        assert.ifError(err);
 
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
+        assert.equal(userList.el, container.children[0]);
+        assert.ok(classes(userList.el).has('gi-relative'));
+        assert.notOk(classes(userList.el).has('gi-anchor'));
 
         done();
       });
     });
 
-    afterEach(function(done) {
-      var el = document.querySelector('.gi-userlist');
+    it('positions on the right', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        position: 'right'
+      });
 
-      if (!testUserList || !el) {
-        return done();
-      }
+      userList.initialize(function(err) {
+        assert.ifError(err);
 
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        testUserList = null;
+        assert.ok(classes(userList.el).has('gi-right'));
 
         done();
       });
     });
 
-    it('truncates after spaces without ellipse' , function() {
-      var els = document.querySelectorAll('.gi-name span');
+    it('positions on the left', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        position: 'left'
+      });
 
-      _.each(els, function(el) {
-        assert.equal(el.innerHTML, 'Guest');
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.ok(classes(userList.el).has('gi-left'));
+
+        done();
+      });
+    });
+
+    it('collapses', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        collapsed: true
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.ok(classes(userList.el).has('gi-collapsed'));
+
+        done();
+      });
+    });
+
+    it('expands', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        collapsed: false
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.notOk(classes(userList.el).has('gi-collapsed'));
+
+        done();
+      });
+    });
+
+    describe('defaults', function() {
+      beforeEach(function(done) {
+        var options = {
+          room: fakeRoom
+        };
+
+        userList = new UserList(options);
+        userList.initialize(function(err) {
+          assert.ifError(err);
+          done();
+        });
+      });
+
+      afterEach(function(done) {
+        userList.destroy(function() {
+          done();
+        });
+      });
+
+      it('initializes and binds to the userCache', function() {
+        sinon.assert.calledOnce(fakeUserCache.initialize);
+        sinon.assert.calledWith(
+          fakeUserCache.on,
+          'join',
+          userList._handleJoinEvent
+        );
+
+        sinon.assert.calledWith(
+          fakeUserCache.on,
+          'leave',
+          userList._handleLeaveEvent
+        );
+
+        sinon.assert.calledWith(
+          fakeUserCache.on,
+          'change',
+          userList._handleUserMeta
+        );
+      });
+
+      it('binds to events for options', function() {
+        sinon.assert.calledWith(
+          UserList._binder.on,
+          sinon.match({className: 'gi-collapse'}),
+          'click',
+          userList._handleCollapseToggle
+        );
+
+        sinon.assert.calledWith(
+          UserList._binder.on,
+          sinon.match({className: 'gi-icon'}),
+          'click',
+          userList._clickEditUser
+        );
+
+        sinon.assert.calledWith(
+          UserList._binder.on,
+          sinon.match({className: 'gi-set-name'}),
+          'keydown',
+          userList._keydownOptionsInput
+        );
+      });
+
+      it('renders a view for each user', function() {
+        sinon.assert.callCount(fakeUserView.render, fakeUsers.length);
+
+        _.each(fakeUsers, function(u) {
+          sinon.assert.calledWith(fakeUserView.render, u);
+        });
+      });
+
+      it('is displayed properly', function() {
+        assert.notOk(classes(userList.el).has('gi-no-options'));
+        assert.ok(classes(userList.el).has('gi-anchor'));
+
+        assert.include(document.body.children, userList.el);
+      });
+    });
+
+    describe('destroy', function() {
+      beforeEach(function(done) {
+        userList.initialize(function(err) {
+          assert.ifError(err);
+
+          userList.destroy(function(err) {
+            assert.ifError(err);
+
+            done();
+          });
+        });
+      });
+
+      it('initializes and binds to the userCache', function() {
+        sinon.assert.calledWith(
+          userList._userCache.off,
+          'join',
+          userList._handleJoinEvent
+        );
+
+        sinon.assert.calledWith(
+          userList._userCache.off,
+          'leave',
+          userList._handleLeaveEvent
+        );
+
+        sinon.assert.calledWith(
+          userList._userCache.off,
+          'change',
+          userList._handleUserMeta
+        );
+      });
+
+      it('binds to events for options', function() {
+        sinon.assert.calledWith(
+          UserList._binder.off,
+          sinon.match({className: 'gi-collapse'}),
+          'click',
+          userList._handleCollapseToggle
+        );
+
+        sinon.assert.calledWith(
+          UserList._binder.off,
+          sinon.match({className: 'gi-icon'}),
+          'click',
+          userList._clickEditUser
+        );
+
+        sinon.assert.calledWith(
+          UserList._binder.off,
+          sinon.match({className: 'gi-set-name'}),
+          'keydown',
+          userList._keydownOptionsInput
+        );
       });
     });
   });
 
-  describe('user view', function() {
-    var testUserList;
-    var testUserView;
-
+  describe('user controls', function() {
     beforeEach(function(done) {
       var options = {
         room: fakeRoom
       };
 
-      testUserList = new UserList(options);
-
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        testUserView = new UserView(testUserList);
+      userList = new UserList(options);
+      userList.initialize(function(err) {
+        assert.ifError(err);
         done();
       });
     });
 
     afterEach(function(done) {
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
+      userList.destroy(function() {
         done();
       });
     });
 
-    it('orders users by displayName with the local user first', function(done) {
-      var moreUsers = {
-        3456: {
-          displayName: 'Zombie',
-          id: '3456'
-        },
-        7890: {
-          displayName: 'Apple',
-          id: '7890'
-        },
-        7891: {
-          displayName: 'Apple',
-          id: '7891'
-        }
-      };
+    it('toggles when collapse is clicked', function() {
+      userList._handleCollapseToggle();
 
-      var sorted = ["guest 1", "apple", "apple", "guest 2", "zombie"];
-      var ids = ["1234", "7890", "7891", "5678", "3456"];
+      assert.ok(classes(userList.el).has('gi-collapsed'));
 
-      var tasks = [
-        _.bind(testUserView.render, testUserView, fakeUsers['5678']),
-        _.bind(testUserView.render, testUserView, moreUsers['7891']),
-        _.bind(testUserView.render, testUserView, fakeUsers['1234']),
-        _.bind(testUserView.render, testUserView, moreUsers['7890']),
-        _.bind(testUserView.render, testUserView, moreUsers['3456'])
-      ];
+      userList._handleCollapseToggle();
 
-      async.series(tasks, function(err) {
-        if (err) {
-          return done(err);
-        }
+      assert.notOk(classes(userList.el).has('gi-collapsed'));
+    });
 
-        var fakeList = $('.gi-inner').children();
-        fakeList.each(function(index) {
-          var userName = fakeList.eq(index).find('span').html().toLowerCase();
-          var userId = fakeList.eq(index).attr('data-goinstant-id');
-          if (userName !== sorted[index] || userId !== ids[index]) {
-            return done(new Error('OUT OF ORDER AHH'));
-          }
+    describe('editing your name', function() {
+      it('toggles editing, and does not save when no change', function(done) {
+        userList._clickEditUser({}, function() {
+          assert.ok(classes(userList.el).has('gi-editing'));
+
+          userList._clickEditUser({}, function() {
+            assert.notOk(classes(userList.el).has('gi-editing'));
+
+            sinon.assert.notCalled(fakeDisplayNameKey.set);
+
+            done();
+          });
+        });
+      });
+
+      it('sets the new name when changed', function(done) {
+        userList._clickEditUser({}, function() {
+          assert.ok(classes(userList.el).has('gi-editing'));
+
+          var input = userList.el.querySelector('input');
+          input.value = 'cool';
+
+          userList._clickEditUser({}, function() {
+            sinon.assert.calledWith(fakeDisplayNameKey.set, 'cool');
+
+            assert.ok(classes(userList.el).has('gi-editing'));
+
+
+            // We wait until the change comes back to the local platform
+            // listener before displaying it.
+            var updatedFakeLocalUser = _.clone(fakeLocalUser);
+            updatedFakeLocalUser.displayName = 'cool';
+
+            var keyName =  '/.users/231232131232/displayName';
+
+            userList._handleUserMeta(updatedFakeLocalUser, keyName, function() {
+              assert.notOk(classes(userList.el).has('gi-editing'));
+
+              sinon.assert.calledWith(
+                fakeUserView.render,
+                updatedFakeLocalUser
+              );
+
+              done();
+            });
+          });
         });
 
-        return done();
       });
-    });
 
-    it('does not add avatar to the user list if invalid img', function(done) {
-      var fakeUser = fakeUsers['5678'];
-      fakeUser.avatarUrl = 'IMGNOTFOUND404';
+      it('stops editing when collapse is clicked', function(done) {
+        userList._clickEditUser({}, function() {
+          assert.ok(classes(userList.el).has('gi-editing'));
 
-      testUserView.render(fakeUser, function() {
+          userList._handleCollapseToggle({});
 
-        var query = '[data-goinstant-id="'+fakeUser.id+'"]';
-        var el = document.querySelector(query);
-        var img = el.querySelector('.gi-avatar-image');
+          assert.notOk(classes(userList.el).has('gi-editing'));
 
-        assert(!img);
-        done();
-      });
-    });
-
-    it('adds an avatar to the user list', function(done) {
-      // Give more time to load image
-      this.timeout(10000);
-
-      var fakeUser = fakeUsers['5678'];
-      fakeUser.avatarUrl = 'https://si0.twimg.com/profile_images/1539812195/' +
-                            '400x400-GoInstant_bigger.png';
-
-      testUserView.render(fakeUser, function() {
-
-        var query = '[data-goinstant-id="'+fakeUser.id+'"]';
-        var el = document.querySelector(query);
-        var img = el.querySelector('.gi-avatar-img');
-
-        assert(img);
-        done();
+          done();
+        });
       });
     });
   });
 
-  describe('change name', function() {
-    var Binder = require('binder');
-
-    var sandbox;
-
-    var testUserList;
-    var mockUserCache;
-
-
-    beforeEach(function() {
-      sandbox = sinon.sandbox.create();
-    });
-
-    afterEach(function() {
-      sandbox.restore();
-    });
-
+  describe('users', function() {
     beforeEach(function(done) {
-      sandbox.stub(Binder, 'on');
-
       var options = {
         room: fakeRoom
       };
 
-      testUserList = new UserList(options);
+      userList = new UserList(options);
+      userList.initialize(function(err) {
+        assert.ifError(err);
 
-      testUserList.initialize(function(err) {
-        if (err) {
-          return done(err);
-        }
-
-        var fakeDisplayNameKey = createFakeKey('displayName');
-        fakeUserKey.key = function() {
-          return fakeDisplayNameKey;
-        };
-
-        mockUserCache = testUserList._userCache;
-        mockUserCache.getUserKey = function() {
-          return fakeUserKey;
-        };
+        fakeUserView.render.reset();
 
         done();
       });
     });
 
     afterEach(function(done) {
-      testUserList.destroy(function(err) {
-        if (err) {
-          return done(err);
-        }
-
+      userList.destroy(function() {
         done();
       });
     });
 
-    it('binds to the click event', function() {
-      sinon.assert.calledWith(Binder.on, testUserList._optionsIcon, 'click', testUserList._setUserName);
+    it('are rendered when they join', function() {
+      var user = {};
+      userList._handleJoinEvent(user);
+
+      sinon.assert.calledWith(fakeUserView.render, user);
     });
 
-    it('clicking the options button toggles name input', function() {
-      var el = $('.gi-options');
-
-      var input = el.children().eq(1);
-
-      assert.equal(input.css('display'), 'none');
-
-      var fakeClickEvent = {
-        type: 'click'
+    it('are rendered when they change', function() {
+      var user = {
+        displayName: 'whatever'
       };
 
-      testUserList._setUserName(fakeClickEvent);
+      userList._handleUserMeta(user, '/.users/awessdsdas/displayName');
 
-      assert(el.hasClass('set'));
-
-      testUserList._setUserName(fakeClickEvent);
-
-      sinon.assert.notCalled(fakeUserKey.key().set);
-
-      assert.equal(input.css('display'), 'none');
-    });
-
-    it('clicking the options button sets the displayName', function() {
-      var el = $('.gi-options');
-
-      var fakeClickEvent = {
-        type: 'click'
-      };
-
-      testUserList._setUserName(fakeClickEvent);
-
-      el.children().eq(1).val('Banana');
-
-      testUserList._setUserName(fakeClickEvent);
-
-      sinon.assert.calledOnce(fakeUserKey.key().set);
-    });
-
-    it('pressing enter sets the displayName', function() {
-      var el = $('.gi-options');
-
-      el.children().eq(0).click();
-      el.children().eq(1).val('Banana');
-
-      var fakeEvent = {
-        type: 'keydown',
-        keyCode: 13
-      };
-
-      testUserList._setUserName(fakeEvent);
-      sinon.assert.calledOnce(fakeUserKey.key().set);
-    });
-
-    it('pressing tab sets the displayName', function() {
-      var el = $('.gi-options');
-
-      el.children().eq(0).click();
-      el.children().eq(1).val('Banana');
-
-      var fakeEvent = {
-        type: 'keydown',
-        keyCode: 9
-      };
-
-      testUserList._setUserName(fakeEvent);
-      sinon.assert.calledOnce(fakeUserKey.key().set);
-    });
-
-    it('doesn\'t set the name if the name didn\'t change', function() {
-      var el = $('.gi-options');
-
-      el.children().eq(0).click();
-      el.children().eq(1).val('Guest 1');
-
-      var fakeEvent = {
-        type: 'keydown',
-        keyCode: 13
-      };
-
-      testUserList._setUserName(fakeEvent);
-      sinon.assert.notCalled(fakeUserKey.key().set);
-    });
-
-    it('name doesn\'t change on displayName key set err', function() {
-      var currentName = $('.gi-local-user span').text();
-
-      var fakeErr = new Error('I\'m an error');
-      fakeUserKey.key().set = sinon.stub().yields(fakeErr);
-
-      var el = $('.gi-options');
-
-      el.children().eq(0).click();
-      el.children().eq(1).val('Banana');
-
-      var fakeEvent = {
-        type: 'keydown',
-        keyCode: 13
-      };
-
-      testUserList._setUserName(fakeEvent);
-      assert(el.children().eq(1).css('display') === 'none');
-      assert($('.gi-local-user span').text() === currentName);
+      sinon.assert.calledWith(fakeUserView.render, user);
     });
   });
 });
