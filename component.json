@@ -41,6 +41,7 @@
 
   "images": [
     "images/sprite.png",
-    "images/000000-0.7.png"
+    "images/sprite@2x.png",
+    "images/transparent.png"
   ]
 }
