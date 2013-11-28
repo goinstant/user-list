@@ -171,6 +171,18 @@
     vertical-align: top; /* Overrides breaking style in bootstrap */
   }
 
+  /* Count */
+
+  .gi-userlist .gi-count {
+    display: inline-block;
+    min-width: 29px;
+    text-align: center;
+  }
+
+  .gi-userlist .gi-count .gi-count-number {
+    font-weight: bold;
+  }
+
   /* Usernames */
   .gi-userlist .gi-name {
     display: inline-block;
@@ -227,6 +239,7 @@
     }
 
     .gi-userlist.gi-collapsed .gi-inner .gi-name,
+    .gi-userlist.gi-collapsed .gi-inner .gi-count-words,
     .gi-userlist.gi-collapsed .gi-options {
       display: none;
       overflow: visible;

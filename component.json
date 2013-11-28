@@ -27,11 +27,13 @@
   "scripts": [
     "index.js",
     "lib/user_view.js",
+    "lib/count_view.js",
     "lib/errors.js"
   ],
 
   "templates": [
     "templates/user-template.html",
+    "templates/count-template.html",
     "templates/list-template.html"
   ],
 

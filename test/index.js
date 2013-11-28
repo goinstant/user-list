@@ -245,6 +245,22 @@ describe('User-List Component', function() {
       });
     });
 
+    it('only displays the number of users', function(done) {
+      userList = new UserList({
+        room: fakeRoom,
+        countOnly: true
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        assert.ok(classes(userList.el).has('gi-count-only'));
+        assert.ok(classes(userList.el).has('gi-no-options'));
+
+        done();
+      });
+    });
+
     it('positions on the right', function(done) {
       userList = new UserList({
         room: fakeRoom,

@@ -17,6 +17,7 @@ var async = require('async');
 var _ = require('lodash');
 
 var UserView = require('./lib/user_view');
+var CountView = require('./lib/count_view');
 var UserCache = require('usercache');
 var colors = require('colors-common');
 
@@ -38,6 +39,7 @@ var ALIGN_RIGHT_CLASS = 'gi-right';
 var DATA_GOINSTANT_ID = 'data-goinstant-id';
 var COLLAPSED_CLASS = 'gi-collapsed';
 var NO_OPTIONS_CLASS = 'gi-no-options';
+var COUNT_ONLY_CLASS = 'gi-count-only';
 
 var ESCAPE = 27;
 var ENTER = 13;
@@ -45,7 +47,7 @@ var TAB = 9;
 
 /** Valid Opts */
 var VALID_OPTIONS = ['room', 'collapsed', 'position', 'container',
-                     'truncateLength', 'avatars', 'userOptions'];
+                     'truncateLength', 'avatars', 'userOptions', 'countOnly'];
 
 var VALID_POSITIONS = ['left', 'right'];
 
@@ -66,6 +68,7 @@ module.exports = UserList;
 
 UserList._UserCache = UserCache;
 UserList._UserView = UserView;
+UserList._CountView = CountView;
 UserList._binder = binder;
 
 /**
@@ -114,6 +117,11 @@ UserList._binder = binder;
   this._container = validOpts.container;
   this._truncateLength = validOpts.truncateLength;
   this._avatars = validOpts.avatars;
+
+  this._countOnly = validOpts.countOnly;
+  if (this._countOnly) {
+    this._enableUserOptions = false;
+  }
 
   // Elements
   this.el = null;
@@ -209,6 +217,10 @@ UserList.prototype._append = function() {
     this.el.removeChild(userOptions);
   }
 
+  if (this._countOnly) {
+    classes(this.el).add(COUNT_ONLY_CLASS);
+  }
+
   // Check if user passed a container and if so, append user list to it
   if (this._container) {
     this._container.appendChild(this.el);
@@ -240,6 +252,15 @@ UserList.prototype._renderList = function(cb) {
   var self = this;
 
   var users = this._userCache.getAll();
+
+  if (this._countOnly) {
+    var countView = new UserList._CountView(self);
+
+    return countView.render(users.length, function() {
+      self.el.style.display = 'block';
+      cb();
+    });
+  }
 
   return async.each(
     users,
