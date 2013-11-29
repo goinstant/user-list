@@ -165,8 +165,8 @@
 
   .gi-userlist .gi-avatar .gi-avatar-img {
     background: #f5f5f5;
-    width: 24px;
-    height: 24px;
+    width: 25px;
+    height: 25px;
     vertical-align: top; /* Overrides breaking style in bootstrap */
   }
 
