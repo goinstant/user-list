@@ -252,7 +252,7 @@ require.register("lodash-lodash/dist/lodash.compat.js", function(exports, requir
 
   /**
    * Used to match ES6 template delimiters
-   * http://people.mozilla.org/~jorendorff/es6-draft.html#sec-literals-string-literals
+   * http://people.mozilla.org/~jorendorff/es6-draft.html#sec-7.8.6
    */
   var reEsTemplate = /\$\{([^\\}]*(?:\\.[^\\}]*)*)\}/g;
 
@@ -2707,7 +2707,7 @@ require.register("lodash-lodash/dist/lodash.compat.js", function(exports, requir
      * @returns {Object} Returns the created inverted object.
      * @example
      *
-     * _.invert({ 'first': 'fred', 'second': 'barney' });
+     *  _.invert({ 'first': 'fred', 'second': 'barney' });
      * // => { 'fred': 'first', 'barney': 'second' }
      */
     function invert(object) {
@@ -4378,7 +4378,7 @@ require.register("lodash-lodash/dist/lodash.compat.js", function(exports, requir
      * // => 3
      *
      * _.size('pebbles');
-     * // => 7
+     * // => 5
      */
     function size(collection) {
       var length = collection ? collection.length : 0;
@@ -5611,8 +5611,8 @@ require.register("lodash-lodash/dist/lodash.compat.js", function(exports, requir
      * @example
      *
      * var view = {
-     *   'label': 'docs',
-     *   'onClick': function() { console.log('clicked ' + this.label); }
+     *  'label': 'docs',
+     *  'onClick': function() { console.log('clicked ' + this.label); }
      * };
      *
      * _.bindAll(view);
@@ -6537,8 +6537,8 @@ require.register("lodash-lodash/dist/lodash.compat.js", function(exports, requir
      * // => 'hello mustache!'
      *
      * // using the `imports` option to import jQuery
-     * var list = '<% jq.each(people, function(name) { %><li><%- name %></li><% }); %>';
-     * _.template(list, { 'people': ['fred', 'barney'] }, { 'imports': { 'jq': jQuery } });
+     * var list = '<% $.each(people, function(name) { %><li><%- name %></li><% }); %>';
+     * _.template(list, { 'people': ['fred', 'barney'] }, { 'imports': { '$': jQuery } });
      * // => '<li>fred</li><li>barney</li>'
      *
      * // using the `sourceURL` option to specify a custom sourceURL for the template
@@ -7124,6 +7124,12 @@ require.register("lodash-lodash/dist/lodash.compat.js", function(exports, requir
 
   // some AMD build optimizers like r.js check for condition patterns like the following:
   if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) {
+    // Expose Lo-Dash to the global object even when an AMD loader is present in
+    // case Lo-Dash was injected by a third-party script and not intended to be
+    // loaded as a module. The global assignment can be reverted in the Lo-Dash
+    // module by its `noConflict()` method.
+    root._ = _;
+
     // define as an anonymous module so, through path mapping, it can be
     // referenced as the "underscore" module
     define(function() {
@@ -7149,9 +7155,9 @@ require.register("lodash-lodash/dist/lodash.compat.js", function(exports, requir
 
 });
 require.register("component-event/index.js", function(exports, require, module){
-var bind = (window.addEventListener !== undefined) ? 'addEventListener' : 'attachEvent',
-    unbind = (window.removeEventListener !== undefined) ? 'removeEventListener' : 'detachEvent',
-    prefix = (bind !== 'addEventListener') ? 'on' : '';
+var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
+    unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent',
+    prefix = bind !== 'addEventListener' ? 'on' : '';
 
 /**
  * Bind `el` event `type` to `fn`.
@@ -7263,20 +7269,21 @@ require.register("discore-closest/index.js", function(exports, require, module){
 var matches = require('matches-selector')
 
 module.exports = function (element, selector, checkYoSelf, root) {
-  element = checkYoSelf ? element : element.parentNode
+  element = checkYoSelf ? {parentNode: element} : element
+
   root = root || document
 
-  do {
+  // Make sure `element !== document` and `element != null`
+  // otherwise we get an illegal invocation
+  while ((element = element.parentNode) && element !== document) {
     if (matches(element, selector))
       return element
     // After `matches` on the edge case that
     // the selector matches the root
     // (when the root is not the document)
     if (element === root)
-      return
-    // Make sure `element !== document`
-    // otherwise we get an illegal invocation
-  } while ((element = element.parentNode) && element !== document)
+      return  
+  }
 }
 });
 require.register("component-delegate/index.js", function(exports, require, module){
@@ -7369,7 +7376,9 @@ exports.on = function(el, event, selector, fn, capture){
 };
 
 /**
- * Unbind `event` listener `fn` for `el`.
+ * Unbind to `event` for `el` and invoke `fn(e)`.
+ * When a `selector` is given then delegated event
+ * handlers are unbound.
  *
  * @param {Element} el
  * @param {String} event
@@ -7603,6 +7612,29 @@ Emitter.prototype.listeners = function(event){
 
 Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
+};
+
+});
+require.register("yields-prevent/index.js", function(exports, require, module){
+
+/**
+ * prevent default on the given `e`.
+ * 
+ * examples:
+ * 
+ *      anchor.onclick = prevent;
+ *      anchor.onclick = function(e){
+ *        if (something) return prevent(e);
+ *      };
+ * 
+ * @param {Event} e
+ */
+
+module.exports = function(e){
+  e = e || window.event
+  return e.preventDefault
+    ? e.preventDefault()
+    : e.returnValue = false;
 };
 
 });
@@ -8776,6 +8808,7 @@ var VALID_EVENTS = ['join', 'leave', 'change'];
  */
 function UserCache(room) {
   this._room = room;
+
   this._users = {};
   this._usersKeys = {};
   this._localUserId = null;
@@ -8785,35 +8818,27 @@ function UserCache(room) {
   _.bindAll(this, [
     '_updateUser',
     '_handleLeaveEvent',
-    '_handleJoinEvent',
-    '_getUsers',
-    '_bindPlatformEvents',
-    '_getLocalUserId'
+    '_handleJoinEvent'
   ]);
 }
 
 /**
  * Initializes the UserCache by binding to platform events.
  * @param {function} cb A callback function.
- * @return {function} A callback function.
  */
 UserCache.prototype.initialize = function(cb) {
   if (!cb || !_.isFunction(cb)) {
     throw new Error('Callback was not found or invalid');
   }
 
-  var tasks = [
-    this._getLocalUserId,
-    this._bindPlatformEvents,
-    this._getUsers
-  ];
+  this._getLocalUserId();
+  this._bindEvents();
 
   var self = this;
 
-  async.series(tasks, function(err) {
+  this._getUsers(function(err) {
     if (err) {
-      return self.destroy(function() {
-        // Ignore destroy errors here since we're erroring anyways.
+      self.destroy(function() {
         return cb(err);
       });
     }
@@ -8824,28 +8849,25 @@ UserCache.prototype.initialize = function(cb) {
 
 /**
  * Destroys the UserCache instance.
- * @param {function} cb A callback function.
- * @return {function} A callback function.
+ * @public
  */
 UserCache.prototype.destroy = function(cb) {
-  var self = this;
+  var users = this._room.users;
 
-  if (!cb || !_.isFunction(cb)) {
-    throw new Error('Callback was not found or invalid');
-  }
+  var usersSetOptions = {
+    local: true,
+    bubble: true,
+    listener: this._updateUser
+  };
 
-  var users = self._room.key('/.users');
+  this._room.off('leave', this._handleLeaveEvent);
+  this._room.off('join', this._handleJoinEvent);
+  users.off('set', usersSetOptions);
+  users.off('remove', usersSetOptions);
 
-  var tasks = [
-    _.bind(self._room.off, self._room, 'leave', self._handleLeaveEvent),
-    _.bind(self._room.off, self._room, 'join', self._handleJoinEvent),
-    _.bind(users.off, users, 'set', self._updateUser),
-    _.bind(users.off, users, 'remove', self._updateUser)
-  ];
+  this._emitter.off();
 
-  self._emitter.off();
-
-  async.parallel(tasks, cb);
+  cb();
 };
 
 /**
@@ -8907,7 +8929,7 @@ UserCache.prototype.getAllUserKeys = function() {
  * @return {object} The local user's key.
  */
 UserCache.prototype.getLocalUserKey = function() {
-  return this.getUserKey(this._localUserId);
+  return this._room.self();
 };
 
 /**
@@ -8923,7 +8945,6 @@ UserCache.prototype.on = function(event, listener) {
   if (!_.isFunction(listener)) {
     throw new Error('Invalid argument: listener function is required');
   }
-
   this._emitter.on(event, listener);
 };
 
@@ -8943,19 +8964,12 @@ UserCache.prototype.off = function(event, listener) {
 /**
  * Gets the local user's ID
  * @private
- * @param {function} cb A callback function.
  */
-UserCache.prototype._getLocalUserId = function(cb) {
-  var self = this;
+UserCache.prototype._getLocalUserId = function() {
+  var selfKey = this._room.self();
+  var path = selfKey.name.split('/');
 
-  this._room.user(function(err, user) {
-    if (err) {
-      return cb(err);
-    }
-
-    self._localUserId = user.id;
-    cb();
-  });
+  this._localUserId = path[2];
 };
 
 /**
@@ -8964,44 +8978,43 @@ UserCache.prototype._getLocalUserId = function(cb) {
  * @param {function} cb A callback function.
  */
 UserCache.prototype._getUsers = function(cb) {
+  var usersKey = this._room.users;
+
   var self = this;
 
-  this._room.users(function(err, userMap, keyMap) {
+  usersKey.get(function(err, users) {
     if (err) {
       return cb(err);
     }
 
-    self._users = userMap;
-    self._usersKeys = keyMap;
+    self._users = users;
+
+    // Create a reference to each user's key
+    _.each(users, function(userObj, keyName) {
+      self._usersKeys[keyName] = self._room.user(keyName);
+    });
 
     cb();
   });
 };
 
 /**
- * Binds to room.join, room.leave and user key.set
+ * Binds to room.join, room.leave and user key.set/key.remove
  * @private
- * @param {function} cb A callback function.
- * @return {function} A callback function.
  */
-UserCache.prototype._bindPlatformEvents = function(cb) {
-  var self = this;
-  var users = self._room.key('/.users');
+UserCache.prototype._bindEvents = function() {
+  var users = this._room.users;
 
-  var metaOptions = {
+  var usersSetOptions = {
     local: true,
     bubble: true,
-    listener: self._updateUser
+    listener: this._updateUser
   };
 
-  var tasks = [
-    _.bind(self._room.on, self._room, 'leave', self._handleLeaveEvent),
-    _.bind(self._room.on, self._room, 'join', self._handleJoinEvent),
-    _.bind(users.on, users, 'set', metaOptions),
-    _.bind(users.on, users, 'remove', metaOptions)
-  ];
-
-  async.parallel(tasks, cb);
+  this._room.on('leave', this._handleLeaveEvent);
+  this._room.on('join', this._handleJoinEvent);
+  users.on('set', usersSetOptions);
+  users.on('remove', usersSetOptions);
 };
 
 /**
@@ -9012,17 +9025,28 @@ UserCache.prototype._bindPlatformEvents = function(cb) {
  * @param {context} context A key context object for the event.
  */
 UserCache.prototype._updateUser = function(value, context) {
-  var self = this;
+  var path = context.key.split('/');
+  var userId = path[2];
+  var userKeyPath = path.slice(3);
 
-  // TODO : Do this more efficiently by just merging the new data in.
-  this._room.key('/.users/' + context.userId).get(function(err, user) {
-    if (err) {
-      throw err;
-    }
+  var user = this._users[userId];
 
-    self._users[user.id] = user;
-    self._emitter.emit('change', user, context.key);
-  });
+  var merge = {};
+  var currentKey = merge;
+
+  // Create structure of object to be merged
+  for (var i = 0; i < userKeyPath.length -1; i++) {
+    var key = userKeyPath[i];
+    currentKey[key] = {};
+    currentKey = currentKey[key];
+  }
+
+  var lastKey = _.last(userKeyPath);
+  currentKey[lastKey] = value;
+
+  _.merge(user, merge);
+
+  this._emitter.emit('change', user, context.key);
 };
 
 /**
@@ -9032,7 +9056,7 @@ UserCache.prototype._updateUser = function(value, context) {
  */
 UserCache.prototype._handleJoinEvent = function(user) {
   this._users[user.id] = user;
-  this._usersKeys[user.id] = this._room.key('/.users/' + user.id);
+  this._usersKeys[user.id] = this._room.user(user.id);
 
   this._emitter.emit('join', user);
 };
@@ -9167,7 +9191,8 @@ require.register("user-list/index.js", function(exports, require, module){
 
 /** Module dependencies */
 var classes = require('classes');
-var Binder = require('binder');
+var prevent = require('prevent');
+var binder = require('binder');
 var async = require('async');
 var _ = require('lodash');
 
@@ -9191,9 +9216,10 @@ var RELATIVE_CLASS = 'gi-relative';
 var ALIGN_LEFT_CLASS = 'gi-left';
 var ALIGN_RIGHT_CLASS = 'gi-right';
 var DATA_GOINSTANT_ID = 'data-goinstant-id';
-var COLLAPSED_CLASS = 'collapsed';
+var COLLAPSED_CLASS = 'gi-collapsed';
 var NO_OPTIONS_CLASS = 'gi-no-options';
 
+var ESCAPE = 27;
 var ENTER = 13;
 var TAB = 9;
 
@@ -9217,6 +9243,10 @@ var defaultOpts = {
 };
 
 module.exports = UserList;
+
+UserList._UserCache = UserCache;
+UserList._UserView = UserView;
+UserList._binder = binder;
 
 /**
  * @constructor
@@ -9256,29 +9286,35 @@ module.exports = UserList;
 
   var validOpts = _.defaults(opts, defaultOpts);
 
+  // Options
   this._room = validOpts.room;
   this._collapsed = validOpts.collapsed;
   this._enableUserOptions = validOpts.userOptions;
-  this._optionsVisible = false;
   this._position = validOpts.position;
   this._container = validOpts.container;
   this._truncateLength = validOpts.truncateLength;
   this._avatars = validOpts.avatars;
-  this._wrapper = null;
+
+  // Elements
+  this.el = null;
+
   this._userList = null;
   this._collapseBtn = null;
   this._optionsOverlay = null;
   this._optionsIcon = null;
   this._optionsInput = null;
-  this._isBound = false;
-  this._nameChange = false;
 
-  this._userCache = new UserCache(this._room);
+  // Boolean State
+  this._editing = false;
+  this._isBound = false;
+
+  this._userCache = new UserList._UserCache(this._room);
 
   _.bindAll(this, [
     '_handleLeaveEvent',
     '_handleCollapseToggle',
-    '_setUserName',
+    '_clickEditUser',
+    '_keydownOptionsInput',
     '_handleUserMeta',
     '_handleJoinEvent',
     '_renderList'
@@ -9310,11 +9346,12 @@ UserList.prototype.initialize = function(cb) {
     }
 
     // Bind click event to collapse toggle.
-    Binder.on(self._collapseBtn, 'click', self._handleCollapseToggle);
+    UserList._binder.on(self._collapseBtn, 'click', self._handleCollapseToggle);
 
     if (self._optionsOverlay) {
-      Binder.on(self._optionsIcon, 'click', self._setUserName);
-      Binder.on(self._optionsInput, 'keydown', self._setUserName);
+      UserList._binder.on(self._optionsIcon, 'click', self._clickEditUser);
+      UserList._binder.on(self._optionsInput, 'keydown',
+                          self._keydownOptionsInput);
     }
 
     // Listen for userCache events.
@@ -9325,15 +9362,14 @@ UserList.prototype.initialize = function(cb) {
     self._isBound = true;
 
     return cb(null, self);
-
   });
 };
 
 UserList.prototype._append = function() {
-  this._wrapper = document.createElement('div');
-  this._wrapper.setAttribute('class', WRAPPER_CLASS + ' ' + OVERRIDE_CLASS);
+  this.el = document.createElement('div');
+  this.el.setAttribute('class', WRAPPER_CLASS + ' ' + OVERRIDE_CLASS);
 
-  this._wrapper.innerHTML = listTemplate;
+  this.el.innerHTML = listTemplate;
 
   // Check to see if userOptions is enabled
   // TODO: we will also want to check to see if the local user is in the room
@@ -9341,7 +9377,7 @@ UserList.prototype._append = function() {
   // would involve updating userCache#getLocalUser to return null if there
   // isn't a local user.
 
-  var userOptions = this._wrapper.querySelector('.' + OPTIONS_OVERLAY_CLASS);
+  var userOptions = this.el.querySelector('.' + OPTIONS_OVERLAY_CLASS);
 
   if (this._enableUserOptions) {
     this._optionsOverlay = userOptions;
@@ -9349,34 +9385,34 @@ UserList.prototype._append = function() {
     this._optionsInput = this._optionsOverlay.children[1];
 
   } else {
-    classes(this._wrapper).add(NO_OPTIONS_CLASS);
-    this._wrapper.removeChild(userOptions);
+    classes(this.el).add(NO_OPTIONS_CLASS);
+    this.el.removeChild(userOptions);
   }
 
   // Check if user passed a container and if so, append user list to it
   if (this._container) {
-    this._container.appendChild(this._wrapper);
+    this._container.appendChild(this.el);
 
-    classes(this._wrapper).add(RELATIVE_CLASS);
+    classes(this.el).add(RELATIVE_CLASS);
 
   } else {
-    document.body.appendChild(this._wrapper);
+    document.body.appendChild(this.el);
 
-    classes(this._wrapper).add(ANCHOR_CLASS);
+    classes(this.el).add(ANCHOR_CLASS);
   }
 
-  this._userList = this._wrapper.querySelector('.' + INNER_CLASS);
-  this._collapseBtn = this._wrapper.querySelector('.' + COLLAPSE_BTN_CLASS);
+  this._userList = this.el.querySelector('.' + INNER_CLASS);
+  this._collapseBtn = this.el.querySelector('.' + COLLAPSE_BTN_CLASS);
 
   // Check if user passed the option for collapsed on load
   this._collapse(this._collapsed);
 
   // Pass the position either default or user set as a class
   if (!this._container && this._position === 'right') {
-    classes(this._wrapper).add(ALIGN_RIGHT_CLASS);
+    classes(this.el).add(ALIGN_RIGHT_CLASS);
 
   } else if (!this._container) {
-    classes(this._wrapper).add(ALIGN_LEFT_CLASS);
+    classes(this.el).add(ALIGN_LEFT_CLASS);
   }
 };
 
@@ -9389,17 +9425,14 @@ UserList.prototype._renderList = function(cb) {
     users,
 
     function(user, next) {
-      var userView = new UserView(self);
+      var userView = new UserList._UserView(self);
 
       userView.render(user, next);
     },
 
-    function(err) {
-      if (err) {
-        return cb(err);
-      }
-
-      self._wrapper.style.display = 'block';
+    function() {
+      // userView rendering cannot fail
+      self.el.style.display = 'block';
 
       return cb();
     }
@@ -9410,7 +9443,7 @@ UserList.prototype._renderList = function(cb) {
  * @private
  */
 UserList.prototype._handleLeaveEvent = function(user) {
-  if (!this._wrapper) {
+  if (!this.el) {
     return;
   }
 
@@ -9424,7 +9457,7 @@ UserList.prototype._handleLeaveEvent = function(user) {
 UserList.prototype._queryUser = function(userId) {
   var dataQuery = '[' + DATA_GOINSTANT_ID + '="' + userId + '"]';
 
-  var userEl = this._wrapper.querySelector(dataQuery);
+  var userEl = this.el.querySelector(dataQuery);
 
   return userEl;
 };
@@ -9434,105 +9467,137 @@ UserList.prototype._handleCollapseToggle = function() {
 };
 
 UserList.prototype._collapse = function(toggle) {
-  if (toggle) {
-    classes(this._userList).add(COLLAPSED_CLASS);
-    classes(this._collapseBtn).add(COLLAPSED_CLASS);
+  var classList = classes(this.el);
 
-    if (this._optionsOverlay) {
-      classes(this._optionsOverlay).add(COLLAPSED_CLASS);
-    }
+  if (toggle) {
+    classList.add(COLLAPSED_CLASS);
     this._collapsed = true;
 
-  } else {
-    classes(this._userList).remove(COLLAPSED_CLASS);
-    classes(this._collapseBtn).remove(COLLAPSED_CLASS);
+    this._deactivateEditing();
 
-    if (this._optionsOverlay) {
-      classes(this._optionsOverlay).remove(COLLAPSED_CLASS);
-    }
+  } else {
+    classList.remove(COLLAPSED_CLASS);
+
     this._collapsed = false;
   }
 };
 
-UserList.prototype._setUserName = function(event) {
-  // Only accept these
-  var isValidKey = event.keyCode === ENTER || event.keyCode === TAB;
-  var isValidClick = event.type === 'click';
+UserList.prototype._keydownOptionsInput = function(event) {
+  var self = this;
 
-  // Ignore other events
-  if (!isValidKey && !isValidClick) {
-    return;
+  switch (event.keyCode) {
+    case ESCAPE:
+      prevent(event);
+
+      self._deactivateEditing();
+
+      break;
+
+    case ENTER:
+    case TAB:
+      prevent(event);
+
+      self._submitNameChange(function(err) {
+        if (err) {
+          self._deactivateEditing();
+        }
+      });
+
+      break;
   }
+};
 
-  var localUser = this._userCache.getLocalUser();
+UserList.prototype._clickEditUser = function(event, cb) {
 
-  // Open the options
-  if (isValidClick && !this._optionsVisible) {
-    classes(this._optionsOverlay).add('set');
-
-    this._optionsInput.focus();
-    this._optionsInput.value = localUser.displayName;
-    this._optionsVisible = true;
-
-    return;
-  }
-
-  var name = _.escape(this._optionsInput.value);
-
-  if (name === localUser.displayName) {
-     // Close the options
-    classes(this._optionsOverlay).remove('set');
-    this._optionsVisible = false;
-    return;
-  }
-
-  var userKey = this._userCache.getLocalUserKey();
+  prevent(event);
 
   var self = this;
 
-  userKey.key('displayName').set(name, function(err) {
-    self._optionsVisible = false;
+  if (self._editing) {
+    self._submitNameChange(function(err) {
+      if (err) {
+        self._deactivateEditing();
+      }
 
+      if (cb) {
+        return cb();
+      }
+    });
+
+  } else {
+    self._activateEditing();
+
+    if (cb) {
+      return cb();
+    }
+  }
+};
+
+UserList.prototype._submitNameChange = function(cb) {
+  var self = this;
+
+  var localUser = self._userCache.getLocalUser();
+  var name = _.escape(self._optionsInput.value);
+
+  if (name === localUser.displayName) {
+    this._deactivateEditing();
+    return cb();
+  }
+
+  var userKey = self._userCache.getLocalUserKey();
+
+  userKey.key('displayName').set(name, function(err) {
     if (err) {
-      // Close the options, name was not set
-      classes(self._optionsOverlay).remove('set');
-      return;
+      return cb(err);
     }
 
-    self._nameChange = true;
+    return cb();
   });
 };
 
-UserList.prototype._handleUserMeta = function(user, keyName) {
+UserList.prototype._activateEditing = function() {
+  this._editing = true;
+
+  var localUser = this._userCache.getLocalUser();
+  this._optionsInput.value = localUser.displayName;
+
+  classes(this.el).add('gi-editing');
+
+  this._optionsInput.focus();
+};
+
+UserList.prototype._deactivateEditing = function() {
+  this._editing = false;
+
+  classes(this.el).remove('gi-editing');
+};
+
+UserList.prototype._handleUserMeta = function(user, keyName, cb) {
   // Ignore user properties that don't affect the user list.
   if (!colors.isUserProperty(keyName) && !DISPLAYNAME_REGEX.test(keyName) &&
       !AVATARURL_REGEX.test(keyName)) {
     return;
   }
 
-  var userView = new UserView(this);
+  var userView = new UserList._UserView(this);
 
   var self = this;
 
-  userView.render(user, function(err) {
-    if (err) {
-      throw err;
+  userView.render(user, function() {
+    if (user.id == self._userCache.getLocalUser().id) {
+      self._deactivateEditing();
     }
 
-    // Hide the userOptions once the name change renders.
-    if (self._nameChange) {
-      classes(self._optionsOverlay).remove('set');
-      self._nameChange = false;
+    if (cb) {
+      return cb();
     }
   });
 };
 
 UserList.prototype._handleJoinEvent = function(user) {
-  var userView = new UserView(this);
-  userView.render(user, function(err) {
-    if (err) {
-      throw err;
-    }
+  var userView = new UserList._UserView(this);
+  userView.render(user, function() {
+
   });
 };
 
@@ -9546,13 +9611,23 @@ UserList.prototype.destroy = function(cb) {
     this._userCache.off('leave', this._handleLeaveEvent);
     this._userCache.off('change', this._handleUserMeta);
 
-    Binder.off(this._collapseBtn, 'click', this._handleCollapseToggle);
+    UserList._binder.off(this._collapseBtn, 'click',
+                         this._handleCollapseToggle);
+
+    if (this._optionsOverlay) {
+      UserList._binder.off(this._optionsIcon, 'click',
+                           this._clickEditUser);
+
+      UserList._binder.off(this._optionsInput, 'keydown',
+                           this._keydownOptionsInput);
+    }
+
     this._isBound = false;
   }
 
-  if (this._wrapper) {
-    this._wrapper.parentNode.removeChild(this._wrapper);
-    this._wrapper = null;
+  if (this.el) {
+    this.el.parentNode.removeChild(this.el);
+    this.el = null;
   }
 
   this._userCache.destroy(cb);
@@ -9837,6 +9912,7 @@ errors.create = function(method, type) {
 
 
 
+
 require.register("user-list/templates/user-template.html", function(exports, require, module){
 module.exports = '<div class="gi-color" style="background-color: <%- avatarColor %>;">\n <div class="gi-avatar">\n    <% if (loaded) { %>\n      <img class="gi-avatar-img" src="<%- avatarUrl %>">\n    <% } %>\n  </div>\n</div>\n<div class="gi-name">\n  <span><%- shortName %></span>\n</div>\n';
 });
@@ -9863,6 +9939,9 @@ require.alias("component-event/index.js", "component-delegate/deps/event/index.j
 require.alias("component-emitter/index.js", "user-list/deps/emitter/index.js");
 require.alias("component-emitter/index.js", "emitter/index.js");
 require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
+
+require.alias("yields-prevent/index.js", "user-list/deps/prevent/index.js");
+require.alias("yields-prevent/index.js", "prevent/index.js");
 
 require.alias("component-classes/index.js", "user-list/deps/classes/index.js");
 require.alias("component-classes/index.js", "classes/index.js");
