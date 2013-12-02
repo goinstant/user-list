@@ -26,6 +26,7 @@
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
+  line-height: normal; /* Reset line height for bootstrap */
 }
 
 .gi-userlist {
