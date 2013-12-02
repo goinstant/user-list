@@ -264,6 +264,7 @@
     width: 30px;
     height: 25px;
     bottom: -24px;
+    z-index: -1;
     background: url('images/transparent.png');
     background: rgba(0,0,0,.7);
     cursor: pointer;
