@@ -171,7 +171,7 @@ Creates the UserList instance with customizable options.
 | An object with the following properties: |
 | - `room` is the [Room](https://developers.goinstant.net/v1/rooms/index.html).|
 | - `container` is an optional DOM element that, if provided, the user list will render in.|
-| - `position` [**default: 'right'**]is a [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), either "left" or "right", for setting the initial side of the browser window that the user list is anchored to.|
+| - `position` [**default: 'right'**] is a [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), either "left" or "right", for setting the initial side of the browser window that the user list is anchored to.|
 | - `collapsed` [**default: false**] is a [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) where, if true, the user list will be initially rendered collapsed.|
 | - `truncateLength` determines the maximum length of a user's display name before they are truncated in the list.|
 | - `avatars` [**default: true**] is a [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) that enables or disables user avatars. |
