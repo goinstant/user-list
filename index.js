@@ -44,8 +44,16 @@ var ENTER = 13;
 var TAB = 9;
 
 /** Valid Opts */
-var VALID_OPTIONS = ['room', 'collapsed', 'position', 'container',
-                     'truncateLength', 'avatars', 'userOptions'];
+var VALID_OPTIONS = [
+  'room',
+  'collapsed',
+  'position',
+  'container',
+  'truncateLength',
+  'avatars',
+  'userOptions',
+  'userTemplate'
+];
 
 var VALID_POSITIONS = ['left', 'right'];
 
@@ -59,7 +67,8 @@ var defaultOpts = {
   container: null,
   truncateLength: 10,
   avatars: true,
-  userOptions: true
+  userOptions: true,
+  userTemplate: null
 };
 
 module.exports = UserList;
@@ -114,6 +123,7 @@ UserList._binder = binder;
   this._container = validOpts.container;
   this._truncateLength = validOpts.truncateLength;
   this._avatars = validOpts.avatars;
+  this._userTemplate = validOpts.userTemplate;
 
   // Elements
   this.el = null;
