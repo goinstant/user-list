@@ -112,6 +112,9 @@ UserList._binder = binder;
   if (opts.userOptions && !_.isBoolean(opts.userOptions)) {
     throw errors.create('UserList', 'INVALID_USEROPTIONS');
   }
+  if (opts.userTemplate && !_.isString(opts.userTemplate)) {
+    throw errors.create('UserList', 'INVALID_USERTEMPLATE');
+  }
 
   var validOpts = _.defaults(opts, defaultOpts);
 
