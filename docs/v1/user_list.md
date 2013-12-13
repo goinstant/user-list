@@ -228,7 +228,7 @@ var userList = new UserList(options);
 | - `shortName` is truncated version of the user displayName.|
 | - `avatarColor` [**default: 'right'**]is a [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) that specifies the user color, if the [User Colors](./user_colors.html) widget is in use. |
 | - `avatarUrl` is a [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) that gives the URL of the user's avatar. |
-| - `loaded` is a [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) that indicates if the user's avatar image has loaded. |
+| - `loaded` is a [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) that indicates if the user's avatar was able to be loaded. |
 
 
 ## UserList#initialize
