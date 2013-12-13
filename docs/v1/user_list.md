@@ -193,7 +193,7 @@ var userList = new UserList(options);
 
 ### Custom Templating Example
 
-In the following example, we've taken the [standard template](https://github.com/goinstant/user-list/blob/master/templates/user-template.html) and modified the user's name to be a link to an email address specified in the extraHeaders portion of a [JWT](../security_and_auth/guides/index.html).
+In the following example, we've taken the [standard template](https://github.com/goinstant/user-list/blob/master/templates/user-template.html) and modified the user's name to be a link to an email address specified in the extraHeaders portion of a [JWT](../security_and_auth/guides/index.html). **WARNING** The use of custom templates may leave your site vulnerable to [Cross-site Scripting](http://en.wikipedia.org/wiki/Cross-site_scripting) attacks. Please use caution when creating your template.
 
 ```js
 
