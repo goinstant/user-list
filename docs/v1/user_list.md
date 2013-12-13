@@ -176,7 +176,7 @@ Creates the UserList instance with customizable options.
 | - `truncateLength` determines the maximum length of a user's display name before they are truncated in the list.|
 | - `avatars` [**default: true**] is a [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) that enables or disables user avatars. |
 | - `userOptions` [**default: true**] is a [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) that enables or disables user options, which allows users to change their display name. |
-| - `userTemplate` [**default: null**] is a [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) of the HTML that will be used to render the rows of the user list. The default template can be found [here.](https://github.com/goinstant/user-list/blob/master/templates/user-template.html) |
+| - `userTemplate` [**default: null**] is a [Function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function) that takes an [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) of template variables and returns a [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) representation of the HTML for the user view . The default template can be found [here.](https://github.com/goinstant/user-list/blob/master/templates/user-template.html) |
 
 ### Example
 
@@ -193,7 +193,7 @@ var userList = new UserList(options);
 
 ### Custom Templating Example
 
-In the following example, we've taken the [standard template](https://github.com/goinstant/user-list/blob/master/templates/user-template.html) and modified the user's name to be a link to an email address specified in the extraHeaders portion of a [JWT](../security_and_auth/guides/index.html). **WARNING** The use of custom templates may leave your site vulnerable to [Cross-site Scripting](http://en.wikipedia.org/wiki/Cross-site_scripting) attacks. Please use caution when creating your template.
+In the following example, we've taken the [standard template](https://github.com/goinstant/user-list/blob/master/templates/user-template.html) and modified the user's name to be a link to an email address specified in the extraHeaders portion of a [JWT](../security_and_auth/guides/index.html). The following example uses [Lo-Dash's template method](http://lodash.com/docs#template) to generate the HTML. **WARNING** The use of custom templates may leave your site vulnerable to [Cross-site Scripting](http://en.wikipedia.org/wiki/Cross-site_scripting) attacks. Please use caution when creating your template.
 
 ```js
 
@@ -214,7 +214,7 @@ var options = {
   position: 'left',
   collapsed: true,
   truncateLength: 15,
-  userTemplate: CUSTOM_USER_TEMPLATE
+  userTemplate: _.template(CUSTOM_USER_TEMPLATE)
 };
 
 var userList = new UserList(options);

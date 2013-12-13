@@ -45,7 +45,7 @@
 
       var options = {
         room: room,
-        userTemplate: CUSTOM_TEMPLATE
+        userTemplate: _.template(CUSTOM_TEMPLATE)
       };
 
       var userColors = new UserColors({ room: room });

@@ -202,7 +202,7 @@ describe('User-List Component', function() {
         }, 'UserList: userOptions must be a boolean');
       });
 
-      it('passes back an error if userTemplate is not a string', function() {
+      it('passes back an error if userTemplate is not a function', function() {
         var options = {
           room: fakeRoom,
           userTemplate: true
@@ -210,7 +210,7 @@ describe('User-List Component', function() {
 
         assert.exception(function() {
           testUserList = new UserList(options);
-        }, 'UserList: userTemplate must be a string');
+        }, 'UserList: userTemplate must be a function');
       });
     });
   });
@@ -257,7 +257,7 @@ describe('User-List Component', function() {
     });
 
     it('renders using a custom user template', function(done) {
-      var CUSTOM_TEMPLATE = '<div id="custom"></div>';
+      var CUSTOM_TEMPLATE = _.template('<div id="custom"></div>');
 
       userList = new UserList({
         room: fakeRoom,
