@@ -201,6 +201,17 @@ describe('User-List Component', function() {
           testUserList = new UserList(options);
         }, 'UserList: userOptions must be a boolean');
       });
+
+      it('passes back an error if userTemplate is not a function', function() {
+        var options = {
+          room: fakeRoom,
+          userTemplate: true
+        };
+
+        assert.exception(function() {
+          testUserList = new UserList(options);
+        }, 'UserList: userTemplate must be a function');
+      });
     });
   });
 
@@ -243,6 +254,27 @@ describe('User-List Component', function() {
 
         done();
       });
+    });
+
+    it('renders using a custom user template', function(done) {
+      var CUSTOM_TEMPLATE = _.template('<div id="custom"></div>');
+
+      userList = new UserList({
+        room: fakeRoom,
+        userTemplate: CUSTOM_TEMPLATE
+      });
+
+      userList.initialize(function(err) {
+        assert.ifError(err);
+
+        sinon.assert.calledWith(
+          UserList._UserView,
+          sinon.match({ _userTemplate: CUSTOM_TEMPLATE })
+        );
+
+        done();
+      });
+
     });
 
     it('positions on the right', function(done) {
