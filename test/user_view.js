@@ -22,10 +22,10 @@ describe('UserView', function() {
 
   describe('render', function() {
 
-    var userList;
+    var mockUserList;
 
     beforeEach(function() {
-      userList = {
+      mockUserList = {
         _userList: {
           querySelector: sinon.stub().returns(false)
         },
@@ -39,12 +39,12 @@ describe('UserView', function() {
     });
 
     it('renders the default template', function(done) {
-      var userView = new UserView(userList);
+      var userView = new UserView(mockUserList);
       sandbox.stub(userView, '_addLocalUserElement');
-      var fakeTemplate = sandbox.spy(userView, '_userTemplate');
+      var templateSpy = sandbox.spy(userView, '_userTemplate');
       userView.render({}, function() {
         assert.equal(
-          fakeTemplate.returnValues[0].substr(0, 10),
+          templateSpy.returnValues[0].substr(0, 10),
           defaultTemplate.substr(0, 10)
         );
         done();
@@ -53,11 +53,11 @@ describe('UserView', function() {
 
     it('renders a custom template', function(done) {
       var CUSTOM_TEMPLATE = '<div></div>';
-      userList._userTemplate = sandbox.spy(_.template(CUSTOM_TEMPLATE));
-      var userView = new UserView(userList);
+      mockUserList._userTemplate = sandbox.spy(_.template(CUSTOM_TEMPLATE));
+      var userView = new UserView(mockUserList);
       sandbox.stub(userView, '_addLocalUserElement');
       userView.render({}, function() {
-        assert.equal(userList._userTemplate.returnValues[0], CUSTOM_TEMPLATE);
+        assert.equal(mockUserList._userTemplate.returnValues[0], CUSTOM_TEMPLATE);
         done();
       });
     });
