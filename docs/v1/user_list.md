@@ -193,7 +193,7 @@ var userList = new UserList(options);
 
 ### Custom Templating Example
 
-In the following example, we've taken the [standard template](https://github.com/goinstant/user-list/blob/master/templates/user-template.html) and modified the user's name to be a link to an email address specified in the extraHeaders portion of a [JWT](../security_and_auth/guides/index.html). The following example uses [Lo-Dash's template method](http://lodash.com/docs#template) to generate the HTML. **WARNING** The use of custom templates may leave your site vulnerable to [Cross-site Scripting](http://en.wikipedia.org/wiki/Cross-site_scripting) attacks. Please use caution when creating your template.
+In the following example, we've taken the [standard template](https://github.com/goinstant/user-list/blob/master/templates/user-template.html) and modified the user's name to be a link to an email address specified in the extraHeaders portion of a [JWT](../security_and_auth/guides/users_and_authentication.html). The following example uses [Lo-Dash's template method](http://lodash.com/docs#template) to generate the HTML. **WARNING** The use of custom templates may leave your site vulnerable to [Cross-site Scripting](http://en.wikipedia.org/wiki/Cross-site_scripting) attacks. Please use caution when creating your template.
 
 ```js
 
@@ -207,7 +207,7 @@ var CUSTOM_USER_TEMPLATE =
   '</div>' +
   '<div class="gi-name">' +
     '<a href="mailto:<%- user.extraHeaders.email %>"><%- shortName %></a>' +
-  '</div>';'
+  '</div>';
 
 var options = {
   room: exampleRoom,
@@ -224,9 +224,9 @@ var userList = new UserList(options);
 |:---|
 | Type: [Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) |
 | The user template is passed an object with the following properties: |
-| - `user` is the [User Object](../javascript_api/users.html). The user object also contains any extraHeaders specified inside a [JWT](../security_and_auth/guides/index.html).|
+| - `user` is the [User Object](../javascript_api/users.html). The user object also contains any extraHeaders specified inside a [JWT](../security_and_auth/guides/users_and_authentication.html).|
 | - `shortName` is truncated version of the user displayName.|
-| - `avatarColor` [**default: 'right'**]is a [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) that specifies the user color, if the [User Colors](./user_colors.html) widget is in use. |
+| - `avatarColor` is a [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) that specifies the user color, if the [User Colors](./user_colors.html) widget is in use. |
 | - `avatarUrl` is a [String](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) that gives the URL of the user's avatar. |
 | - `loaded` is a [Boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) that indicates if the user's avatar was able to be loaded. |
 
