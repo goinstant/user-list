@@ -7172,7 +7172,6 @@ var bind = window.addEventListener ? 'addEventListener' : 'attachEvent',
 
 exports.bind = function(el, type, fn, capture){
   el[bind](prefix + type, fn, capture || false);
-
   return fn;
 };
 
@@ -7189,7 +7188,6 @@ exports.bind = function(el, type, fn, capture){
 
 exports.unbind = function(el, type, fn, capture){
   el[unbind](prefix + type, fn, capture || false);
-
   return fn;
 };
 });
@@ -9224,8 +9222,16 @@ var ENTER = 13;
 var TAB = 9;
 
 /** Valid Opts */
-var VALID_OPTIONS = ['room', 'collapsed', 'position', 'container',
-                     'truncateLength', 'avatars', 'userOptions'];
+var VALID_OPTIONS = [
+  'room',
+  'collapsed',
+  'position',
+  'container',
+  'truncateLength',
+  'avatars',
+  'userOptions',
+  'userTemplate'
+];
 
 var VALID_POSITIONS = ['left', 'right'];
 
@@ -9239,7 +9245,8 @@ var defaultOpts = {
   container: null,
   truncateLength: 10,
   avatars: true,
-  userOptions: true
+  userOptions: true,
+  userTemplate: null
 };
 
 module.exports = UserList;
@@ -9283,6 +9290,9 @@ UserList._binder = binder;
   if (opts.userOptions && !_.isBoolean(opts.userOptions)) {
     throw errors.create('UserList', 'INVALID_USEROPTIONS');
   }
+  if (opts.userTemplate && !_.isFunction(opts.userTemplate)) {
+    throw errors.create('UserList', 'INVALID_USERTEMPLATE');
+  }
 
   var validOpts = _.defaults(opts, defaultOpts);
 
@@ -9294,6 +9304,7 @@ UserList._binder = binder;
   this._container = validOpts.container;
   this._truncateLength = validOpts.truncateLength;
   this._avatars = validOpts.avatars;
+  this._userTemplate = validOpts.userTemplate;
 
   // Elements
   this.el = null;
@@ -9680,6 +9691,7 @@ function UserView(userList) {
   this._userCache = userList._userCache;
   this._avatars = userList._avatars;
   this._enableUserOptions = userList._enableUserOptions;
+  this._userTemplate = userList._userTemplate || _.template(userTemplate);
 }
 
 /**
@@ -9693,6 +9705,7 @@ UserView.prototype.render = function(user, cb) {
   var displayName = _.isString(user.displayName) ? user.displayName : '';
 
   var tmplVars = {
+    user: user,
     shortName: truncate(displayName, this._truncateLength),
     avatarColor: colors.get(user),
     loaded: false,
@@ -9715,7 +9728,7 @@ UserView.prototype.render = function(user, cb) {
       tmplVars.loaded = true;
     }
 
-    var template = _.template(userTemplate, tmplVars);
+    var template = self._userTemplate(tmplVars);
     var entry = document.createElement('li');
     entry.innerHTML = template;
     classes(entry).add('gi-user');
@@ -9889,6 +9902,7 @@ var errorMap = {
   INVALID_TRUNCATELENGTH: ': truncateLength can only be a number',
   INVALID_AVATARS: ': avatars must be a boolean',
   INVALID_USEROPTIONS: ': userOptions must be a boolean',
+  INVALID_USERTEMPLATE: ': userTemplate must be a function',
 
   INVALID_LISTENER: ': Listener was not found or invalid',
   INVALID_EVENT: ': Event was not found or invalid'

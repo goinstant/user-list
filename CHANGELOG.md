@@ -1,5 +1,10 @@
 # User List Changelog
 
+### v1.2.0
+
+- Added docs
+- Added template option
+
 ### v1.1.0
 
 - Added .jshintrc
