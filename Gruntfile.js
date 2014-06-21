@@ -22,7 +22,7 @@ module.exports = function(grunt) {
   var UGLIFY_BIN_PATH = path.join(__dirname,
                                   'node_modules/uglify-js/bin/uglifyjs');
 
-  function getSemver() {
+  function getServer() {
     return require('./component').version;
   }
 
@@ -30,8 +30,8 @@ module.exports = function(grunt) {
     return require('./component').name;
   }
 
-  function getSemverURLPath() {
-    return ASSET_HOST + '/widgets/user-list/v' + getSemver();
+  function getServerURLPath() {
+    return ASSET_HOST + '/widgets/user-list/v' + getServer();
   }
 
   grunt.loadNpmTasks('grunt-contrib-clean');
